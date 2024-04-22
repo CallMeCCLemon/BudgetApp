@@ -20,11 +20,11 @@ type Budget struct {
 }
 
 type Category struct {
-	Title          string
-	Budget         Budget
-	ID             string
-	Total          float64
-	Allocations    []Allocation
+	Title       string
+	Budget      Budget
+	ID          string
+	Total       float64
+	Allocations []Allocation
 }
 
 type Allocation struct {
@@ -55,19 +55,19 @@ func getBudget(storageDao *persistance.StorageDao, id string, month string) (bud
 	}
 	var categories []Category
 	var errors []error
-	for categoryId := range internalBudget.Categories {
+	for _, categoryId := range internalBudget.Categories {
 		category, err := storageDao.ReadCategory(categoryId)
 		if err != nil {
 			errors = append(errors, err)
 		}
 		categories = append(categories, Category{
 			Title: category.Title,
-			Allocations:
+			//Allocations:
 		})
 	}
 	budget = Budget{
-		Name:       internalBudget.Name,
-		Categories: internalBudget.Categories,
+		Name: internalBudget.Name,
+		//Categories: internalBudget.Categories,
 
 	}
 

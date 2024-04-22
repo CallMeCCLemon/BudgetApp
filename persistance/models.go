@@ -1,7 +1,8 @@
 package persistance
 
 import (
-	"net/http"
+	"database/sql"
+	"fmt"
 )
 
 type Budget struct {
@@ -42,11 +43,20 @@ type Account struct {
 }
 
 type StorageDao struct {
-	Connection http.Client
+	DB *sql.DB
 }
 
-func (*StorageDao) ReadBudget(id string) (budget Budget, err error) {
+func NewStorageDao(username string, password string, address string, dbname string) (*StorageDao, error) {
+	db, err := sql.Open("mysql", fmt.Sprintf(`%s:%s@%s/%s`, username, password, address, dbname))
+	if err != nil {
+		return nil, err
+	}
+	return &StorageDao{DB: db}, nil
+}
+
+func (dao *StorageDao) ReadBudget(id string) (budget Budget, err error) {
 	budget = Budget{}
+	//dao.DB
 	// Get IDs from Storage layer.
 
 	return budget, nil

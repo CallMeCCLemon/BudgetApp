@@ -14,7 +14,6 @@
   * Delete transaction manually
   * Assign transaction to category
 * CRUD Financial Account
-* 
 * Upload CSV (or other common format) to the app. Parse all transactions and de-dupe.
 
 ## HTTP Data Types
