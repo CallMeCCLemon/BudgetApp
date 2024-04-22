@@ -95,8 +95,17 @@ func (dao *StorageDao) WriteCategory(category Category) (id *uuid.UUID, err erro
 	return
 }
 
-func (dao *StorageDao) ReadAccount() (account Account, err error) {
-	return Account{}, nil
+func (dao *StorageDao) ReadAccount(id uuid.UUID) (account Account, err error) {
+	row := dao.DB.QueryRow("SELECT * FROM Accounts WHERE ID=?", id)
+	if err != nil {
+		return Account{}, err
+	}
+
+	err = row.Scan(&account.ID, &account.Name)
+	if err != nil {
+		return Account{}, err
+	}
+	return
 }
 
 func (dao *StorageDao) WriteAccount(account Account) (id *uuid.UUID, err error) {
