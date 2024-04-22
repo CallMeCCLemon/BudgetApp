@@ -10,3 +10,17 @@ spec:
   instances: 2
   router:
     instances: 1
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: budget-application
+  namespace: budget-app
+  labels:
+    app: budget-app
+spec:
+  containers:
+    - name: budget-application
+      image: budget-app:latest
+      ports:
+        - containerPort: 8080

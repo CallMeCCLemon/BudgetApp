@@ -22,10 +22,8 @@ CREATE TABLE Categories
     ID             CHAR(36) PRIMARY KEY,
     Title          VARCHAR(255),
     AllocatedFunds DECIMAL(10, 2),
-    BudgetID       CHAR(36),
     Total          DECIMAL(10, 2),
-    Allocations    TEXT, -- Store UUIDs of Allocation
-    FOREIGN KEY (BudgetID) REFERENCES Budgets (ID)
+    Allocations    TEXT -- Store UUIDs of Allocation
 );
 
 CREATE TABLE Allocations

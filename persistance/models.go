@@ -3,6 +3,7 @@ package persistance
 import (
 	"database/sql"
 	"fmt"
+	"log"
 	"strings"
 	"time"
 
@@ -22,6 +23,7 @@ type Budget struct {
 type Category struct {
 	Title          string
 	AllocatedFunds float64
+	BudgetID       uuid.UUID
 	ID             uuid.UUID
 	Total          float64
 	Allocations    []string
@@ -40,7 +42,7 @@ type Transaction struct {
 	Account  Account
 	Category Category
 	ID       uuid.UUID
-	date     time.Time
+	Date     time.Time
 }
 
 type Account struct {
@@ -53,7 +55,7 @@ type StorageDao struct {
 }
 
 func NewStorageDao(username string, password string, address string, dbname string) (*StorageDao, error) {
-	db, err := sql.Open("mysql", fmt.Sprintf(`%s:%s@tcp(%s)/%s`, username, password, address, dbname))
+	db, err := sql.Open("mysql", fmt.Sprintf(`%s:%s@tcp(%s)/%s?parseTime=true`, username, password, address, dbname))
 	if err != nil {
 		return nil, err
 	}
@@ -148,20 +150,43 @@ func (dao *StorageDao) WriteAccount(account Account) (id *uuid.UUID, err error) 
 	return
 }
 
-func (dao *StorageDao) ReadTransaction() (transaction Transaction, err error) {
-	return Transaction{}, nil
+func (dao *StorageDao) ReadTransaction(id uuid.UUID) (transaction Transaction, err error) {
+	log.Default().Printf("UUID: %s", id.String())
+	row := dao.DB.QueryRow("SELECT * FROM Transactions WHERE ID=?", id)
+	if err != nil {
+		return Transaction{}, err
+	}
+	var categoryID uuid.UUID
+	var accountID uuid.UUID
+
+	err = row.Scan(&transaction.ID, &transaction.Amount, &transaction.Memo, &accountID, &categoryID, &transaction.Date)
+	if err != nil {
+		return Transaction{}, err
+	}
+	transaction.Account, err = dao.ReadAccount(accountID)
+	if err != nil {
+		return Transaction{}, err
+	}
+
+	transaction.Category, err = dao.ReadCategory(categoryID)
+	if err != nil {
+		return Transaction{}, err
+	}
+
+	return
 }
 
-func (dao *StorageDao) WriteTransaction(transaction Transaction) (id *uuid.UUID, err error) {
-	result, err := dao.DB.Exec("INSERT INTO Transactions (amount, memo, accountID, categoryID, id) VALUES (?, ?, ?, ?, ?)", transaction.Amount, transaction.Memo, transaction.Account, transaction.Category, transaction.ID)
+func (dao *StorageDao) WriteTransaction(transaction Transaction) (id uuid.UUID, err error) {
+	log.Default().Printf("UUID: %s", transaction.ID.String())
+	result, err := dao.DB.Exec("INSERT INTO Transactions (amount, memo, accountID, categoryID, id, Date) VALUES (?, ?, ?, ?, ?, ?)", transaction.Amount, transaction.Memo, transaction.Account.ID, transaction.Category.ID, transaction.ID, transaction.Date)
 	if err != nil {
-		return nil, err
+		return uuid.UUID{}, err
 	}
 	_, err = result.LastInsertId()
 	if err != nil {
-		return nil, err
+		return uuid.UUID{}, err
 	}
-	id = &transaction.ID
+	id = transaction.ID
 	return
 }
 

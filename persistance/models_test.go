@@ -7,6 +7,7 @@ import (
 
 	"github.com/google/uuid"
 	"gotest.tools/v3/assert"
+	"time"
 )
 
 func TestStorageDao_WriteBudget(t *testing.T) {
@@ -19,7 +20,7 @@ func TestStorageDao_WriteBudget(t *testing.T) {
 	categories := []uuid.UUID{uuid.New()}
 	accounts := []uuid.UUID{uuid.New()}
 
-	t.Run("Write then Read something", func(t *testing.T) {
+	t.Run("Write then Read Budget", func(t *testing.T) {
 		budget := Budget{
 			Name:       name,
 			ID:         id,
@@ -48,7 +49,7 @@ func TestStorageDao_WriteAccount(t *testing.T) {
 	id := uuid.New()
 	name := "test-account-001"
 
-	t.Run("Write then Read something", func(t *testing.T) {
+	t.Run("Write then Read a new Account", func(t *testing.T) {
 		account := Account{
 			Name: name,
 			ID:   id,
@@ -64,6 +65,62 @@ func TestStorageDao_WriteAccount(t *testing.T) {
 		}
 		assert.Equal(t, savedAccount.ID, id)
 		assert.Equal(t, savedAccount.Name, name)
+	})
+}
+
+func TestStorageDao_WriteTransaction(t *testing.T) {
+	dao, err := NewStorageDao("root", os.Getenv("password"), "127.0.0.1", "budgetApp")
+	if err != nil {
+		log.Fatal("Failed to connect to the MySQL DB!", err)
+	}
+	amount := 100.00
+	memo := "Test Memo"
+	accountId := uuid.New()
+	categoryId := uuid.New()
+	transactionId := uuid.New()
+	location, _ := time.LoadLocation("UTC")
+	date := time.Date(2024, 12, 1, 4, 47, 10, 0, location)
+	account := Account{
+		Name: "DummyAccount",
+		ID:   accountId,
+	}
+	category := Category{
+		Title:          "DummyCategory",
+		AllocatedFunds: 40.3,
+		BudgetID:       uuid.UUID{},
+		ID:             categoryId,
+		Total:          10.4,
+		Allocations:    []string{"test1", "test2"},
+	}
+
+	_, err = dao.WriteAccount(account)
+	if err != nil {
+		return
+	}
+	_, err = dao.WriteCategory(category)
+	if err != nil {
+		return
+	}
+
+	t.Run("Write then Read a new Transaction", func(t *testing.T) {
+		transaction := Transaction{
+			Amount:   amount,
+			Memo:     memo,
+			Account:  account,
+			Category: category,
+			ID:       transactionId,
+			Date:     date,
+		}
+		id, err := dao.WriteTransaction(transaction)
+		if err != nil {
+			t.Fatal("Failed to write Transaction to the MySQL DB!", err)
+		}
+		//assert.Equal(t, new_id, id)
+		savedTransaction, err := dao.ReadTransaction(id)
+		if err != nil {
+			t.Fatal("Failed to Read Transaction from the MySQL DB!", err)
+		}
+		assert.DeepEqual(t, transaction, savedTransaction)
 	})
 }
 

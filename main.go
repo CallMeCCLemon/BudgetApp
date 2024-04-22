@@ -3,6 +3,7 @@ package main
 import (
 	"BudgetingApp/persistance"
 	"github.com/google/uuid"
+	"log"
 )
 
 func main() {
@@ -13,7 +14,7 @@ func main() {
 	// /account/${id} -> Get account and transactions
 	//
 	//
-
+	log.Default().Println("Hello World!")
 }
 
 type Budget struct {
@@ -53,24 +54,24 @@ type Account struct {
 }
 
 func getBudget(storageDao *persistance.StorageDao, id string, month string) (budget Budget, err error) {
-	internalBudget, err := storageDao.ReadBudget(id)
-	if err != nil {
-		return Budget{}, err
-	}
-	var categories []Category
-	var errors []error
-	for _, categoryId := range internalBudget.Categories {
-		category, err := storageDao.ReadCategory(categoryId)
-		if err != nil {
-			errors = append(errors, err)
-		}
-		categories = append(categories, Category{
-			Title: category.Title,
-			//Allocations:
-		})
-	}
+	//internalBudget, err := storageDao.ReadBudget(id)
+	//if err != nil {
+	//	return Budget{}, err
+	//}
+	//var categories []Category
+	//var errors []error
+	//for _, categoryId := range internalBudget.Categories {
+	//	category, err := storageDao.ReadCategory(categoryId)
+	//	if err != nil {
+	//		errors = append(errors, err)
+	//	}
+	//	categories = append(categories, Category{
+	//		Title: category.Title,
+	//		//Allocations:
+	//	})
+	//}
 	budget = Budget{
-		Name: internalBudget.Name,
+		//Name: internalBudget.Name,
 		//Categories: internalBudget.Categories,
 
 	}
