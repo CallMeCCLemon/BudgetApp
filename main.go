@@ -3,6 +3,8 @@ package main
 import (
 	"BudgetingApp/persistance"
 	"github.com/google/uuid"
+	"log"
+	"os"
 )
 
 func main() {
@@ -13,6 +15,19 @@ func main() {
 	// /account/${id} -> Get account and transactions
 	//
 	//
+
+	dao, err := persistance.NewStorageDao("root", os.Getenv("password"), "127.0.0.1", "budgetApp")
+	if err != nil {
+		log.Fatal("Failed to connect to the MySQL DB!", err)
+	}
+	_, err = dao.WriteAccount(persistance.Account{
+		Name: "test-account-001",
+		ID:   uuid.New(),
+	})
+	if err != nil {
+		log.Fatal("Failed to write account to the MySQL DB!", err)
+	}
+
 }
 
 type Budget struct {
