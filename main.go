@@ -1,6 +1,9 @@
 package main
 
-import "BudgetingApp/persistance"
+import (
+	"BudgetingApp/persistance"
+	"github.com/google/uuid"
+)
 
 func main() {
 
@@ -16,13 +19,13 @@ type Budget struct {
 	Name       string
 	Categories []Category
 	Accounts   []Account
-	ID         string
+	ID         uuid.UUID
 }
 
 type Category struct {
 	Title       string
 	Budget      Budget
-	ID          string
+	ID          uuid.UUID
 	Total       float64
 	Allocations []Allocation
 }
@@ -31,7 +34,7 @@ type Allocation struct {
 	// date
 	Amount     float64
 	CategoryID string
-	ID         string
+	ID         uuid.UUID
 }
 
 type Transaction struct {
@@ -39,13 +42,13 @@ type Transaction struct {
 	Memo     string
 	Account  Account
 	Category Category
-	ID       string
+	ID       uuid.UUID
 	// date
 }
 
 type Account struct {
 	Name string
-	ID   string
+	ID   uuid.UUID
 }
 
 func getBudget(storageDao *persistance.StorageDao, id string, month string) (budget Budget, err error) {
