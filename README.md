@@ -48,3 +48,10 @@
 * Financial Account
   * InstitutionName - String
   * ID - UUID
+
+### Connecting to mysql
+
+This will start the port-forwarding on your local machine to get started with mySql.
+```
+kubectl port-forward service/budget-app-mysql-database -n budget-app 3306
+```

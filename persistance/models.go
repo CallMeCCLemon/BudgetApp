@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"fmt"
 	"github.com/google/uuid"
+	"time"
 )
 
 type Budget struct {
@@ -35,7 +36,7 @@ type Transaction struct {
 	Account  Account
 	Category Category
 	ID       uuid.UUID
-	// date
+	date     time.Time
 }
 
 type Account struct {
@@ -52,12 +53,19 @@ func NewStorageDao(username string, password string, address string, dbname stri
 	if err != nil {
 		return nil, err
 	}
+	// TODO: Figure out if this is how this is intended to be done.
+	defer func(db *sql.DB) {
+		err := db.Close()
+		if err != nil {
+
+		}
+	}(db)
 	return &StorageDao{DB: db}, nil
 }
 
 func (dao *StorageDao) ReadBudget(id string) (budget Budget, err error) {
 	budget = Budget{}
-	//dao.DB
+
 	// Get IDs from Storage layer.
 
 	return budget, nil
@@ -87,8 +95,17 @@ func (dao *StorageDao) ReadTransaction() (transaction Transaction, err error) {
 	return Transaction{}, nil
 }
 
-func (dao *StorageDao) WriteTransaction(transaction Transaction) (id string, err error) {
-	return "", nil
+func (dao *StorageDao) WriteTransaction(transaction Transaction) (id *uuid.UUID, err error) {
+	result, err := dao.DB.Exec("INSERT INTO transactions (amount, memo, account, category, id) VALUES (?, ?, ?, ?, ?)", transaction.Amount, transaction.Memo, transaction.Account, transaction.Category, transaction.ID)
+	if err != nil {
+		return nil, err
+	}
+	_, err = result.LastInsertId()
+	if err != nil {
+		return nil, err
+	}
+	id = &transaction.ID
+	return
 }
 
 func (dao *StorageDao) GetAllocation(date string) (allocation Allocation, err error) {
