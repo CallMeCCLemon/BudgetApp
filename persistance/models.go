@@ -3,23 +3,25 @@ package persistance
 import (
 	"database/sql"
 	"fmt"
-	"github.com/google/uuid"
+	"strings"
 	"time"
+
+	"github.com/google/uuid"
+	"github.com/lib/pq"
 
 	_ "github.com/go-sql-driver/mysql"
 )
 
 type Budget struct {
 	Name       string
-	Categories []string
-	Accounts   []string
-	Id         uuid.UUID
+	Categories []uuid.UUID
+	Accounts   []uuid.UUID
+	ID         uuid.UUID
 }
 
 type Category struct {
 	Title          string
 	AllocatedFunds float64
-	BudgetID       uuid.UUID
 	ID             uuid.UUID
 	Total          float64
 	Allocations    []string
@@ -65,25 +67,50 @@ func NewStorageDao(username string, password string, address string, dbname stri
 	return &StorageDao{DB: db}, nil
 }
 
-func (dao *StorageDao) ReadBudget(id string) (budget Budget, err error) {
-	budget = Budget{}
+func (dao *StorageDao) ReadBudget(id uuid.UUID) (budget Budget, err error) {
+	row := dao.DB.QueryRow("SELECT * FROM Budgets WHERE ID=?", id)
+	if err != nil {
+		return Budget{}, err
+	}
 
-	// Get IDs from Storage layer.
-
-	return budget, nil
+	err = row.Scan(&budget.ID, &budget.Name, &budget.Categories, &budget.Accounts)
+	if err != nil {
+		return Budget{}, err
+	}
+	return
 }
 
-func (dao *StorageDao) WriteBudget(budget Budget) (id string, err error) {
-	return "", nil
+func (dao *StorageDao) WriteBudget(budget Budget) (id *uuid.UUID, err error) {
+	result, err := dao.DB.Exec("INSERT INTO Budgets (Name, Categories, Accounts, Id) VALUES (?, ?, ?, ?)",
+		budget.Name, pq.Array(budget.Categories), pq.Array(budget.Accounts), budget.ID)
+	if err != nil {
+		return nil, err
+	}
+	_, err = result.LastInsertId()
+	if err != nil {
+		return nil, err
+	}
+	id = &budget.ID
+	return
 }
 
-func (dao *StorageDao) ReadCategory(id string) (category Category, err error) {
-	return Category{}, nil
+func (dao *StorageDao) ReadCategory(id uuid.UUID) (category Category, err error) {
+	row := dao.DB.QueryRow("SELECT * FROM Categories WHERE ID=?", id)
+	if err != nil {
+		return Category{}, err
+	}
+	var allocations string
+	err = row.Scan(&category.ID, &category.Title, &category.AllocatedFunds, &category.Total, &allocations)
+	category.Allocations = strings.Split(allocations, ",")
+	if err != nil {
+		return Category{}, err
+	}
+	return
 }
 
 func (dao *StorageDao) WriteCategory(category Category) (id *uuid.UUID, err error) {
-	result, err := dao.DB.Exec("INSERT INTO Categories (ID, Title, AllocatedFunds, BudgetID, Total, Allocations) VALUES (?, ?, ?, ?, ?, ?)",
-		category.ID, category.Title, category.AllocatedFunds, category.BudgetID, category.Total, category.Allocations)
+	result, err := dao.DB.Exec("INSERT INTO Categories (ID, Title, AllocatedFunds, Total, Allocations) VALUES (?, ?, ?, ?, ?)",
+		category.ID, category.Title, category.AllocatedFunds, category.Total, strings.Join(category.Allocations, ","))
 	if err != nil {
 		return nil, err
 	}
