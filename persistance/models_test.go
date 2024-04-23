@@ -6,7 +6,7 @@ import (
 	"testing"
 
 	"github.com/google/uuid"
-	"gotest.tools/v3/assert"
+	"github.com/stretchr/testify/assert"
 	"time"
 )
 
@@ -28,12 +28,11 @@ func TestStorageDao_Budgets(t *testing.T) {
 	}
 
 	t.Run("Writing a budget succeeds", func(t *testing.T) {
-
 		newID, err := dao.WriteBudget(budget)
 		if err != nil {
 			t.Fatal("Failed to write budget to the MySQL DB!", err)
 		}
-		assert.DeepEqual(t, newID, &id)
+		assert.Equal(t, newID, &id)
 	})
 
 	t.Run("Read an existing Budget", func(t *testing.T) {
@@ -41,7 +40,21 @@ func TestStorageDao_Budgets(t *testing.T) {
 		if err != nil {
 			t.Fatal("Failed to read budget from the MySQL DB!", err)
 		}
-		assert.DeepEqual(t, savedBudget, budget)
+		assert.Equal(t, savedBudget, &budget)
+	})
+
+	t.Run("Delete an existing Budget", func(t *testing.T) {
+		deletedID, err := dao.DeleteBudget(id)
+		if err != nil {
+			t.Fatal("Failed to delete budget from the MySQL DB!", err)
+		}
+		assert.Equal(t, deletedID, &id)
+	})
+
+	t.Run("Read a deleted Budget", func(t *testing.T) {
+		savedBudget, err := dao.ReadBudget(id)
+		assert.Error(t, err, "sql: no rows in result set")
+		assert.Nil(t, savedBudget, nil)
 	})
 }
 
@@ -124,7 +137,7 @@ func TestStorageDao_WriteTransaction(t *testing.T) {
 		if err != nil {
 			t.Fatal("Failed to Read Transaction from the MySQL DB!", err)
 		}
-		assert.DeepEqual(t, transaction, savedTransaction)
+		assert.Equal(t, transaction, savedTransaction)
 	})
 }
 
@@ -156,6 +169,6 @@ func TestStorageDao_WriteCategory(t *testing.T) {
 		if err != nil {
 			t.Fatal("Failed to read category from the MySQL DB!", err)
 		}
-		assert.DeepEqual(t, savedCategory, category)
+		assert.Equal(t, savedCategory, category)
 	})
 }

@@ -67,30 +67,30 @@ func NewStorageDao(username string, password string, address string, dbname stri
 	return &StorageDao{DB: db}, nil
 }
 
-func (dao *StorageDao) ReadBudget(id uuid.UUID) (budget Budget, err error) {
+func (dao *StorageDao) ReadBudget(id uuid.UUID) (budget *Budget, err error) {
 	row := dao.DB.QueryRow("SELECT * FROM Budgets WHERE ID=?", id)
 	if err != nil {
-		return Budget{}, err
+		return nil, err
 	}
 	var joinedCategories string
 	var joinedAccounts string
-
-	err = row.Scan(&budget.ID, &budget.Name, &joinedCategories, &joinedAccounts)
+	tmpBudget := Budget{}
+	err = row.Scan(&tmpBudget.ID, &tmpBudget.Name, &joinedCategories, &joinedAccounts)
 	if err != nil {
-		return Budget{}, err
+		return nil, err
 	}
 	accounts, err := toUUIDs(strings.Split(joinedAccounts, ","))
 	if err != nil {
-		return Budget{}, err
+		return nil, err
 	}
-	budget.Accounts = accounts
+	tmpBudget.Accounts = accounts
 
 	categories, err := toUUIDs(strings.Split(joinedCategories, ","))
 	if err != nil {
-		return Budget{}, err
+		return nil, err
 	}
-	budget.Categories = categories
-
+	tmpBudget.Categories = categories
+	budget = &tmpBudget
 	return
 }
 
@@ -105,6 +105,15 @@ func (dao *StorageDao) WriteBudget(budget Budget) (id *uuid.UUID, err error) {
 		return nil, err
 	}
 	id = &budget.ID
+	return
+}
+
+func (dao *StorageDao) DeleteBudget(id uuid.UUID) (deletedID *uuid.UUID, err error) {
+	_, err = dao.DB.Exec("DELETE FROM Budgets WHERE ID=?", id)
+	if err != nil {
+		return nil, err
+	}
+	deletedID = &id
 	return
 }
 
