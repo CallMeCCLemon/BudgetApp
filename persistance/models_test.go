@@ -10,7 +10,7 @@ import (
 	"time"
 )
 
-func TestStorageDao_WriteBudget(t *testing.T) {
+func TestStorageDao_Budgets(t *testing.T) {
 	dao, err := NewStorageDao("root", os.Getenv("password"), "127.0.0.1", "budgetApp")
 	if err != nil {
 		log.Fatal("Failed to connect to the MySQL DB!", err)
@@ -20,18 +20,23 @@ func TestStorageDao_WriteBudget(t *testing.T) {
 	categories := []uuid.UUID{uuid.New(), uuid.New()}
 	accounts := []uuid.UUID{uuid.New(), uuid.New()}
 
-	t.Run("Write then Read Budget", func(t *testing.T) {
-		budget := Budget{
-			Name:       name,
-			ID:         id,
-			Categories: categories,
-			Accounts:   accounts,
-		}
-		_, err := dao.WriteBudget(budget)
+	budget := Budget{
+		Name:       name,
+		ID:         id,
+		Categories: categories,
+		Accounts:   accounts,
+	}
+
+	t.Run("Writing a budget succeeds", func(t *testing.T) {
+
+		newID, err := dao.WriteBudget(budget)
 		if err != nil {
 			t.Fatal("Failed to write budget to the MySQL DB!", err)
 		}
-		//assert.Equal(t, new_id, id)
+		assert.DeepEqual(t, newID, &id)
+	})
+
+	t.Run("Read an existing Budget", func(t *testing.T) {
 		savedBudget, err := dao.ReadBudget(id)
 		if err != nil {
 			t.Fatal("Failed to read budget from the MySQL DB!", err)
