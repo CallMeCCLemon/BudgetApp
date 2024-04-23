@@ -17,8 +17,8 @@ func TestStorageDao_WriteBudget(t *testing.T) {
 	}
 	id := uuid.New()
 	name := "test-account-001"
-	categories := []uuid.UUID{uuid.New()}
-	accounts := []uuid.UUID{uuid.New()}
+	categories := []uuid.UUID{uuid.New(), uuid.New()}
+	accounts := []uuid.UUID{uuid.New(), uuid.New()}
 
 	t.Run("Write then Read Budget", func(t *testing.T) {
 		budget := Budget{
@@ -32,12 +32,11 @@ func TestStorageDao_WriteBudget(t *testing.T) {
 			t.Fatal("Failed to write budget to the MySQL DB!", err)
 		}
 		//assert.Equal(t, new_id, id)
-		savedAccount, err := dao.ReadBudget(id)
+		savedBudget, err := dao.ReadBudget(id)
 		if err != nil {
 			t.Fatal("Failed to read budget from the MySQL DB!", err)
 		}
-		assert.Equal(t, savedAccount.ID, id)
-		assert.Equal(t, savedAccount.Name, name)
+		assert.DeepEqual(t, savedBudget, budget)
 	})
 }
 

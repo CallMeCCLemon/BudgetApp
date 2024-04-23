@@ -7,10 +7,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/google/uuid"
-	"github.com/lib/pq"
-
 	_ "github.com/go-sql-driver/mysql"
+	"github.com/google/uuid"
 )
 
 type Budget struct {
@@ -74,17 +72,31 @@ func (dao *StorageDao) ReadBudget(id uuid.UUID) (budget Budget, err error) {
 	if err != nil {
 		return Budget{}, err
 	}
+	var joinedCategories string
+	var joinedAccounts string
 
-	err = row.Scan(&budget.ID, &budget.Name, &budget.Categories, &budget.Accounts)
+	err = row.Scan(&budget.ID, &budget.Name, &joinedCategories, &joinedAccounts)
 	if err != nil {
 		return Budget{}, err
 	}
+	accounts, err := toUUIDs(strings.Split(joinedAccounts, ","))
+	if err != nil {
+		return Budget{}, err
+	}
+	budget.Accounts = accounts
+
+	categories, err := toUUIDs(strings.Split(joinedCategories, ","))
+	if err != nil {
+		return Budget{}, err
+	}
+	budget.Categories = categories
+
 	return
 }
 
 func (dao *StorageDao) WriteBudget(budget Budget) (id *uuid.UUID, err error) {
 	result, err := dao.DB.Exec("INSERT INTO Budgets (Name, Categories, Accounts, Id) VALUES (?, ?, ?, ?)",
-		budget.Name, pq.Array(budget.Categories), pq.Array(budget.Accounts), budget.ID)
+		budget.Name, strings.Join(toStrings(budget.Categories), ","), strings.Join(toStrings(budget.Accounts), ","), budget.ID)
 	if err != nil {
 		return nil, err
 	}
@@ -192,4 +204,24 @@ func (dao *StorageDao) WriteTransaction(transaction Transaction) (id uuid.UUID, 
 
 func (dao *StorageDao) GetAllocation(date string) (allocation Allocation, err error) {
 	return Allocation{}, nil
+}
+
+func toStrings(ids []uuid.UUID) []string {
+	var stringIds []string
+	for _, id := range ids {
+		stringIds = append(stringIds, id.String())
+	}
+	return stringIds
+}
+
+func toUUIDs(ids []string) ([]uuid.UUID, error) {
+	var uuids []uuid.UUID
+	for _, id := range ids {
+		parsedID, err := uuid.Parse(id)
+		if err != nil {
+			return nil, err
+		}
+		uuids = append(uuids, parsedID)
+	}
+	return uuids, nil
 }
