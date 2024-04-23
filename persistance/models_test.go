@@ -5,9 +5,10 @@ import (
 	"os"
 	"testing"
 
+	"time"
+
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
-	"time"
 )
 
 func TestStorageDao_Budgets(t *testing.T) {
@@ -58,7 +59,7 @@ func TestStorageDao_Budgets(t *testing.T) {
 	})
 }
 
-func TestStorageDao_WriteAccount(t *testing.T) {
+func TestStorageDao_AccountFunctions(t *testing.T) {
 	dao, err := NewStorageDao("root", os.Getenv("password"), "127.0.0.1", "budgetApp")
 	if err != nil {
 		log.Fatal("Failed to connect to the MySQL DB!", err)
@@ -66,22 +67,39 @@ func TestStorageDao_WriteAccount(t *testing.T) {
 	id := uuid.New()
 	name := "test-account-001"
 
-	t.Run("Write then Read a new Account", func(t *testing.T) {
-		account := Account{
-			Name: name,
-			ID:   id,
-		}
+	account := Account{
+		Name: name,
+		ID:   id,
+	}
+
+	t.Run("Write a new Account", func(t *testing.T) {
 		_, err := dao.WriteAccount(account)
 		if err != nil {
 			t.Fatal("Failed to write account to the MySQL DB!", err)
 		}
-		//assert.Equal(t, new_id, id)
+	})
+
+	t.Run("Read a new Account", func(t *testing.T) {
 		savedAccount, err := dao.ReadAccount(id)
 		if err != nil {
 			t.Fatal("Failed to Read account from the MySQL DB!", err)
 		}
-		assert.Equal(t, savedAccount.ID, id)
-		assert.Equal(t, savedAccount.Name, name)
+		assert.Equal(t, savedAccount, &account)
+	})
+
+	t.Run("Delete a new Account", func(t *testing.T) {
+		deletedAccount, err := dao.DeleteAccount(id)
+		if err != nil {
+			t.Fatal("Failed to delete transaction from the MySQL DB!", err)
+		}
+
+		assert.Equal(t, *deletedAccount, id)
+	})
+
+	t.Run("Read a deleted Transaction", func(t *testing.T) {
+		deletedAccount, err := dao.ReadAccount(id)
+		assert.Error(t, err, "sql: no rows in result set")
+		assert.Nil(t, deletedAccount, nil)
 	})
 }
 
@@ -119,25 +137,43 @@ func TestStorageDao_WriteTransaction(t *testing.T) {
 		return
 	}
 
-	t.Run("Write then Read a new Transaction", func(t *testing.T) {
-		transaction := Transaction{
-			Amount:   amount,
-			Memo:     memo,
-			Account:  account,
-			Category: category,
-			ID:       transactionId,
-			Date:     date,
-		}
-		id, err := dao.WriteTransaction(transaction)
+	transaction := Transaction{
+		Amount:   amount,
+		Memo:     memo,
+		Account:  account,
+		Category: category,
+		ID:       transactionId,
+		Date:     date,
+	}
+
+	t.Run("Write a new Transaction", func(t *testing.T) {
+		_, err := dao.WriteTransaction(transaction)
 		if err != nil {
 			t.Fatal("Failed to write Transaction to the MySQL DB!", err)
 		}
-		//assert.Equal(t, new_id, id)
-		savedTransaction, err := dao.ReadTransaction(id)
+	})
+
+	t.Run("Read a new Transaction", func(t *testing.T) {
+		savedTransaction, err := dao.ReadTransaction(transactionId)
 		if err != nil {
 			t.Fatal("Failed to Read Transaction from the MySQL DB!", err)
 		}
-		assert.Equal(t, transaction, savedTransaction)
+		assert.Equal(t, &transaction, savedTransaction)
+	})
+
+	t.Run("Delete a new Transaction", func(t *testing.T) {
+		deletedTransaction, err := dao.DeleteTransaction(transactionId)
+		if err != nil {
+			t.Fatal("Failed to delete transaction from the MySQL DB!", err)
+		}
+
+		assert.Equal(t, deletedTransaction, &transactionId)
+	})
+
+	t.Run("Read a deleted Transaction", func(t *testing.T) {
+		deletedTransaction, err := dao.ReadTransaction(transactionId)
+		assert.Error(t, err, "sql: no rows in result set")
+		assert.Nil(t, deletedTransaction)
 	})
 }
 
@@ -152,23 +188,41 @@ func TestStorageDao_WriteCategory(t *testing.T) {
 	total := 44.7
 	allocations := []string{"allocation1", "allocation2"}
 
-	t.Run("Write then read a category", func(t *testing.T) {
-		category := Category{
-			ID:             id,
-			Title:          title,
-			AllocatedFunds: allocatedFunds,
-			Total:          total,
-			Allocations:    allocations,
-		}
+	category := Category{
+		ID:             id,
+		Title:          title,
+		AllocatedFunds: allocatedFunds,
+		Total:          total,
+		Allocations:    allocations,
+	}
+
+	t.Run("Write a category", func(t *testing.T) {
 		_, err := dao.WriteCategory(category)
 		if err != nil {
 			t.Fatal("Falied to write category to the MySQL DB!", err)
 		}
+	})
 
+	t.Run("Read a category", func(t *testing.T) {
 		savedCategory, err := dao.ReadCategory(id)
 		if err != nil {
 			t.Fatal("Failed to read category from the MySQL DB!", err)
 		}
 		assert.Equal(t, savedCategory, category)
+	})
+
+	t.Run("Delete a category", func(t *testing.T) {
+		deletedCategory, err := dao.DeleteCategory(id)
+		if err != nil {
+			t.Fatal("Failed to delete transaction from the MySQL DB!", err)
+		}
+
+		assert.Equal(t, *deletedCategory, id)
+	})
+
+	t.Run("Read a deleted category", func(t *testing.T) {
+		deletedCategory, err := dao.ReadBudget(id)
+		assert.Error(t, err, "sql: no rows in result set")
+		assert.Nil(t, deletedCategory, nil)
 	})
 }

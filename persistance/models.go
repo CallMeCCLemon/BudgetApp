@@ -69,9 +69,6 @@ func NewStorageDao(username string, password string, address string, dbname stri
 
 func (dao *StorageDao) ReadBudget(id uuid.UUID) (budget *Budget, err error) {
 	row := dao.DB.QueryRow("SELECT * FROM Budgets WHERE ID=?", id)
-	if err != nil {
-		return nil, err
-	}
 	var joinedCategories string
 	var joinedAccounts string
 	tmpBudget := Budget{}
@@ -119,9 +116,6 @@ func (dao *StorageDao) DeleteBudget(id uuid.UUID) (deletedID *uuid.UUID, err err
 
 func (dao *StorageDao) ReadCategory(id uuid.UUID) (category Category, err error) {
 	row := dao.DB.QueryRow("SELECT * FROM Categories WHERE ID=?", id)
-	if err != nil {
-		return Category{}, err
-	}
 	var allocations string
 	err = row.Scan(&category.ID, &category.Title, &category.AllocatedFunds, &category.Total, &allocations)
 	category.Allocations = strings.Split(allocations, ",")
@@ -145,16 +139,27 @@ func (dao *StorageDao) WriteCategory(category Category) (id *uuid.UUID, err erro
 	return
 }
 
-func (dao *StorageDao) ReadAccount(id uuid.UUID) (account Account, err error) {
-	row := dao.DB.QueryRow("SELECT * FROM Accounts WHERE ID=?", id)
+func (dao *StorageDao) DeleteCategory(id uuid.UUID) (deletedID *uuid.UUID, err error) {
+	_, err = dao.DB.Exec("DELETE FROM Categories WHERE ID=?", id)
 	if err != nil {
-		return Account{}, err
+		return nil, err
 	}
 
-	err = row.Scan(&account.ID, &account.Name)
+	deletedID = &id
+	return
+}
+
+func (dao *StorageDao) ReadAccount(id uuid.UUID) (account *Account, err error) {
+	row := dao.DB.QueryRow("SELECT * FROM Accounts WHERE ID=?", id)
+	var tempAccount Account
+
+	err = row.Scan(&tempAccount.ID, &tempAccount.Name)
+
 	if err != nil {
-		return Account{}, err
+		return nil, err
 	}
+
+	account = &tempAccount
 	return
 }
 
@@ -171,29 +176,40 @@ func (dao *StorageDao) WriteAccount(account Account) (id *uuid.UUID, err error) 
 	return
 }
 
-func (dao *StorageDao) ReadTransaction(id uuid.UUID) (transaction Transaction, err error) {
+func (dao *StorageDao) DeleteAccount(id uuid.UUID) (deletedID *uuid.UUID, err error) {
+	_, err = dao.DB.Exec("DELETE FROM Accounts WHERE ID=?", id)
+	if err != nil {
+		return nil, err
+	}
+
+	deletedID = &id
+	return
+}
+
+func (dao *StorageDao) ReadTransaction(id uuid.UUID) (transaction *Transaction, err error) {
 	log.Default().Printf("UUID: %s", id.String())
 	row := dao.DB.QueryRow("SELECT * FROM Transactions WHERE ID=?", id)
-	if err != nil {
-		return Transaction{}, err
-	}
+
 	var categoryID uuid.UUID
 	var accountID uuid.UUID
 
-	err = row.Scan(&transaction.ID, &transaction.Amount, &transaction.Memo, &accountID, &categoryID, &transaction.Date)
+	var tempTransaction Transaction
+
+	err = row.Scan(&tempTransaction.ID, &tempTransaction.Amount, &tempTransaction.Memo, &accountID, &categoryID, &tempTransaction.Date)
 	if err != nil {
-		return Transaction{}, err
+		return nil, err
 	}
-	transaction.Account, err = dao.ReadAccount(accountID)
+	account, err := dao.ReadAccount(accountID)
+	tempTransaction.Account = *account
 	if err != nil {
-		return Transaction{}, err
+		return nil, err
 	}
 
-	transaction.Category, err = dao.ReadCategory(categoryID)
+	tempTransaction.Category, err = dao.ReadCategory(categoryID)
 	if err != nil {
-		return Transaction{}, err
+		return nil, err
 	}
-
+	transaction = &tempTransaction
 	return
 }
 
@@ -208,6 +224,16 @@ func (dao *StorageDao) WriteTransaction(transaction Transaction) (id uuid.UUID, 
 		return uuid.UUID{}, err
 	}
 	id = transaction.ID
+	return
+}
+
+func (dao *StorageDao) DeleteTransaction(id uuid.UUID) (deletedID *uuid.UUID, err error) {
+	_, err = dao.DB.Exec("DELETE FROM Transactions WHERE ID=?", id)
+	if err != nil {
+		return nil, err
+	}
+
+	deletedID = &id
 	return
 }
 
