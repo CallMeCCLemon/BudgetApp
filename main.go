@@ -2,26 +2,62 @@ package main
 
 import (
 	"BudgetingApp/persistance"
+	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
-	"log"
+	"net/http"
+	"os"
 )
 
 func main() {
+	dao, err := persistance.NewStorageDao("root", os.Getenv("password"), "127.0.0.1", "budgetApp")
+	if err != nil {
+		return
+	}
 
+	r := gin.Default()
+	r.GET("/budget", func(c *gin.Context) {
+		budgets, err := getAllBudgets(dao)
+		response := map[string][]Budget{
+			"Budgets": budgets,
+		}
+		if err != nil {
+			return
+		}
+		c.JSON(http.StatusOK, response)
+	})
 	// Routes
 	// /budget -> Get all budgets for user
 	// /budget/${id} -> Get single budget with categories and computations
 	// /account/${id} -> Get account and transactions
 	//
 	//
-	log.Default().Println("Hello World!")
+	err = r.Run()
+	if err != nil {
+		return
+	}
+}
+
+func getAllBudgets(dao *persistance.StorageDao) (budgets []Budget, err error) {
+	internalBudgets, err := dao.ReadBudgets()
+	if err != nil {
+		return
+	}
+	for _, budget := range internalBudgets {
+		budgets = append(budgets, toExternal(budget))
+	}
+	return
+}
+
+func toExternal(budget persistance.Budget) Budget {
+	return Budget{
+		Name: budget.Name,
+		ID:   budget.ID,
+	}
 }
 
 type Budget struct {
-	Name       string
-	Categories []Category
-	Accounts   []Account
-	ID         uuid.UUID
+	Name string
+	ID   uuid.UUID
 }
 
 type Category struct {

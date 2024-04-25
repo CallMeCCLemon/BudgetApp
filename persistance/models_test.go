@@ -30,32 +30,26 @@ func TestStorageDao_Budgets(t *testing.T) {
 
 	t.Run("Writing a budget succeeds", func(t *testing.T) {
 		newID, err := dao.WriteBudget(budget)
-		if err != nil {
-			t.Fatal("Failed to write budget to the MySQL DB!", err)
-		}
+		assert.Nil(t, err)
 		assert.Equal(t, newID, &id)
 	})
 
 	t.Run("Read an existing Budget", func(t *testing.T) {
 		savedBudget, err := dao.ReadBudget(id)
-		if err != nil {
-			t.Fatal("Failed to read budget from the MySQL DB!", err)
-		}
+		assert.Nil(t, err)
 		assert.Equal(t, savedBudget, &budget)
 	})
 
 	t.Run("Delete an existing Budget", func(t *testing.T) {
 		deletedID, err := dao.DeleteBudget(id)
-		if err != nil {
-			t.Fatal("Failed to delete budget from the MySQL DB!", err)
-		}
+		assert.Nil(t, err)
 		assert.Equal(t, deletedID, &id)
 	})
 
 	t.Run("Read a deleted Budget", func(t *testing.T) {
 		savedBudget, err := dao.ReadBudget(id)
 		assert.Error(t, err, "sql: no rows in result set")
-		assert.Nil(t, savedBudget, nil)
+		assert.Nil(t, savedBudget)
 	})
 }
 

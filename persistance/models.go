@@ -67,6 +67,31 @@ func NewStorageDao(username string, password string, address string, dbname stri
 	return &StorageDao{DB: db}, nil
 }
 
+func (dao *StorageDao) ReadBudgets() (budgets []Budget, err error) {
+	result, err := dao.DB.Query("SELECT * FROM Budgets")
+	if err != nil {
+		return []Budget{}, err
+	}
+	var joinedCategories string
+	var joinedAccounts string
+	budgetReader := Budget{}
+	err = result.Scan(&budgetReader.ID, &budgetReader.Name, &joinedCategories, &joinedAccounts)
+	if err != nil {
+		return nil, err
+	}
+	budgets = append(budgets, budgetReader)
+	for result.NextResultSet() {
+		budgetReader := Budget{}
+		err = result.Scan(&budgetReader.ID, &budgetReader.Name, &joinedCategories, &joinedAccounts)
+		if err != nil {
+			return nil, err
+		}
+		budgets = append(budgets, budgetReader)
+	}
+
+	return
+}
+
 func (dao *StorageDao) ReadBudget(id uuid.UUID) (budget *Budget, err error) {
 	row := dao.DB.QueryRow("SELECT * FROM Budgets WHERE ID=?", id)
 	var joinedCategories string
