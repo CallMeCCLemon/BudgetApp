@@ -15,6 +15,12 @@ func main() {
 	}
 
 	r := gin.Default()
+	r.GET("/", func(c *gin.Context) {
+		c.JSON(http.StatusOK, gin.H{
+			"response": "Hello World!",
+		})
+	})
+
 	r.GET("/budget", func(c *gin.Context) {
 		budgets, err := getAllBudgets(dao)
 		response := map[string][]Budget{
