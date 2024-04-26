@@ -9,7 +9,7 @@ import (
 )
 
 func main() {
-	dao, err := persistance.NewStorageDao("root", os.Getenv("password"), "127.0.0.1", "budgetApp")
+	dao, err := persistance.NewStorageDao(os.Getenv("USERNAME"), os.Getenv("PASSWORD"), os.Getenv("HOST"), "budgetApp")
 	if err != nil {
 		return
 	}

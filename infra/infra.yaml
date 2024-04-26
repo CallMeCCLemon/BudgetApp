@@ -11,16 +11,46 @@ spec:
   router:
     instances: 1
 ---
-apiVersion: v1
-kind: Pod
+apiVersion: apps/v1
+kind: Deployment
 metadata:
-  name: budget-application
+  name: budget-app-backend
   namespace: budget-app
   labels:
-    app: budget-app
+    app: budget-app-backend
 spec:
-  containers:
-    - name: budget-application
-      image: budget-app:latest
-      ports:
-        - containerPort: 8080
+  replicas: 2
+  selector:
+    matchLabels:
+      app: budget-app-backend
+  template:
+    metadata:
+      labels:
+        app: budget-app-backend
+    spec:
+      containers:
+        - name: budget-app-backend
+          image: localhost:32000/budget-app:thomas-latest
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 8080
+          env:
+            - name: USERNAME
+              valueFrom:
+                secretKeyRef:
+                  name: mysql-passwords
+                  key: rootUser
+            - name: PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: mysql-passwords
+                  key: rootPassword
+            - name: HOST
+              value: budget-app-mysql-database
+          resources:
+            requests:
+              cpu: "100m"
+              memory: "128Mi"
+            limits:
+              cpu: "200m"
+              memory: "256Mi"
