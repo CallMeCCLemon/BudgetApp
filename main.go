@@ -4,6 +4,7 @@ import (
 	"BudgetingApp/persistance"
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
+	"log"
 	"net/http"
 	"os"
 )
@@ -46,11 +47,13 @@ func main() {
 func getAllBudgets(dao *persistance.StorageDao) (budgets []Budget, err error) {
 	internalBudgets, err := dao.ReadBudgets()
 	if err != nil {
+		log.Fatal("Failed to read all budgets!", err)
 		return
 	}
 	for _, budget := range internalBudgets {
 		budgets = append(budgets, toExternal(budget))
 	}
+	log.Default().Println("Returning budgets: ", budgets)
 	return
 }
 

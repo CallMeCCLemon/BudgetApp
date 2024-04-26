@@ -1,8 +1,9 @@
 package persistance
 
 import (
+	"crypto/tls"
 	"database/sql"
-	"fmt"
+	"github.com/go-sql-driver/mysql"
 	"log"
 	"strings"
 	"time"
@@ -53,7 +54,21 @@ type StorageDao struct {
 }
 
 func NewStorageDao(username string, password string, address string, dbname string) (*StorageDao, error) {
-	db, err := sql.Open("mysql", fmt.Sprintf(`%s:%s@tcp(%s)/%s?parseTime=true`, username, password, address, dbname))
+	cfg := mysql.Config{
+		User:   username,
+		Passwd: password,
+		Net:    "tcp",
+		Addr:   address,
+		DBName: dbname,
+		//TLSConfig: "skip-verify",
+		TLS: &tls.Config{
+			MinVersion: tls.VersionTLS12,
+			MaxVersion: tls.VersionTLS12,
+		},
+		ParseTime: true,
+	}
+
+	db, err := sql.Open("mysql", cfg.FormatDSN())
 	if err != nil {
 		return nil, err
 	}
@@ -68,18 +83,14 @@ func NewStorageDao(username string, password string, address string, dbname stri
 }
 
 func (dao *StorageDao) ReadBudgets() (budgets []Budget, err error) {
+	log.Println("DB status: ", dao.DB.Stats())
 	result, err := dao.DB.Query("SELECT * FROM Budgets")
 	if err != nil {
 		return []Budget{}, err
 	}
 	var joinedCategories string
 	var joinedAccounts string
-	budgetReader := Budget{}
-	err = result.Scan(&budgetReader.ID, &budgetReader.Name, &joinedCategories, &joinedAccounts)
-	if err != nil {
-		return nil, err
-	}
-	budgets = append(budgets, budgetReader)
+
 	for result.NextResultSet() {
 		budgetReader := Budget{}
 		err = result.Scan(&budgetReader.ID, &budgetReader.Name, &joinedCategories, &joinedAccounts)
