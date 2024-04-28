@@ -3,6 +3,7 @@ package service
 import (
 	"BudgetingApp/persistance"
 	"github.com/gin-gonic/gin"
+	"gorm.io/gorm"
 	"log"
 	"net/http"
 	"os"
@@ -46,17 +47,29 @@ func setupServer(dao *persistance.StorageDao) *gin.Engine {
 		}
 		budget, err := dao.GetBudget(query.ID)
 		if err != nil {
-			c.JSON(400, gin.H{"Message": "No Budget found for ID"})
+			c.JSON(http.StatusBadRequest, gin.H{"Message": "No Budget found for ID"})
 			return
 		}
-		c.JSON(200, toExternal(budget))
+		c.JSON(http.StatusOK, toExternal(budget))
+		return
 	})
-	// Routes
-	// /budget -> Get all budgets for user
-	// /budget/${id} -> Get single budget with categories and computations
-	// /account/${id} -> Get account and transactions
-	//
-	//
+
+	g.POST("/budget", func(c *gin.Context) {
+		var budget Budget
+		err := c.Bind(&budget)
+		if err != nil {
+			c.JSON(400, gin.H{"Message": "Invalid budget"})
+			return
+		}
+		internalBudget := toInternal(budget)
+		result := dao.GormDB.Create(&internalBudget)
+		if result.Error != nil || result.RowsAffected == 0 {
+			c.JSON(500, gin.H{"Message": "Failed to create budget!"})
+			return
+		}
+		c.JSON(http.StatusOK, toExternal(internalBudget))
+		return
+	})
 
 	return g
 }
@@ -74,18 +87,6 @@ func getAllBudgets(dao *persistance.StorageDao) (budgets []Budget, err error) {
 	return
 }
 
-func getBudget(dao *persistance.StorageDao, id uint) (budget Budget, err error) {
-	internalBudget, err := dao.GetBudget(id)
-	if err != nil {
-		log.Fatal("Failed to read budget!", err)
-		return
-	}
-	budget = toExternal(internalBudget)
-
-	log.Default().Println("Returning budget: ", budget)
-	return
-}
-
 func toExternal(budget persistance.Budget) Budget {
 	return Budget{
 		Name: budget.Name,
@@ -93,13 +94,20 @@ func toExternal(budget persistance.Budget) Budget {
 	}
 }
 
+func toInternal(budget Budget) persistance.Budget {
+	return persistance.Budget{
+		Name:  budget.Name,
+		Model: gorm.Model{ID: budget.ID},
+	}
+}
+
 type Query struct {
-	ID uint `uri:"name"`
+	ID uint `uri:"id"`
 }
 
 type Budget struct {
-	Name string
-	ID   uint
+	Name string `uri:"name"`
+	ID   uint   `uri:"id"`
 }
 
 type Category struct {
