@@ -1,222 +1,318 @@
 package persistance
 
 import (
+	"github.com/stretchr/testify/assert"
+	"gorm.io/gorm"
 	"log"
 	"os"
 	"testing"
-
 	"time"
-
-	"github.com/google/uuid"
-	"github.com/stretchr/testify/assert"
 )
 
-func TestStorageDao_Budgets(t *testing.T) {
-	dao, err := NewStorageDao("root", os.Getenv("password"), "127.0.0.1", "budgetApp")
+func Test_CreateTables(t *testing.T) {
+	dao, err := NewStorageDao("root", os.Getenv("PASSWORD"), "127.0.0.1", "budgetApp")
 	if err != nil {
 		log.Fatal("Failed to connect to the MySQL DB!", err)
 	}
-	id := uuid.New()
-	name := "test-account-001"
-	categories := []uuid.UUID{uuid.New(), uuid.New()}
-	accounts := []uuid.UUID{uuid.New(), uuid.New()}
-
-	budget := Budget{
-		Name:       name,
-		ID:         id,
-		Categories: categories,
-		Accounts:   accounts,
-	}
-
-	t.Run("Writing a budget succeeds", func(t *testing.T) {
-		newID, err := dao.WriteBudget(budget)
-		assert.Nil(t, err)
-		assert.Equal(t, newID, &id)
-	})
-
-	t.Run("Read an existing Budget", func(t *testing.T) {
-		savedBudget, err := dao.ReadBudget(id)
-		assert.Nil(t, err)
-		assert.Equal(t, savedBudget, &budget)
-	})
-
-	t.Run("Delete an existing Budget", func(t *testing.T) {
-		deletedID, err := dao.DeleteBudget(id)
-		assert.Nil(t, err)
-		assert.Equal(t, deletedID, &id)
-	})
-
-	t.Run("Read a deleted Budget", func(t *testing.T) {
-		savedBudget, err := dao.ReadBudget(id)
-		assert.Error(t, err, "sql: no rows in result set")
-		assert.Nil(t, savedBudget)
-	})
+	_ = dao.GormDB.Migrator().CreateTable(&Budget{})
+	_ = dao.GormDB.Migrator().CreateTable(&Account{})
+	_ = dao.GormDB.Migrator().CreateTable(&Allocation{})
+	_ = dao.GormDB.Migrator().CreateTable(&Transaction{})
+	_ = dao.GormDB.Migrator().CreateTable(&Category{})
 }
 
-func TestStorageDao_AccountFunctions(t *testing.T) {
-	dao, err := NewStorageDao("root", os.Getenv("password"), "127.0.0.1", "budgetApp")
+func Test_AccountCRUDOperations(t *testing.T) {
+	dao, err := NewStorageDao(os.Getenv("USERNAME"), os.Getenv("PASSWORD"), os.Getenv("HOST"), "budgetApp")
 	if err != nil {
 		log.Fatal("Failed to connect to the MySQL DB!", err)
 	}
-	id := uuid.New()
-	name := "test-account-001"
+	name := "test-account-003"
 
 	account := Account{
 		Name: name,
-		ID:   id,
 	}
 
 	t.Run("Write a new Account", func(t *testing.T) {
-		_, err := dao.WriteAccount(account)
-		if err != nil {
-			t.Fatal("Failed to write account to the MySQL DB!", err)
-		}
+		result := dao.GormDB.Create(&account)
+		assert.NoError(t, result.Error)
+		assert.NotZero(t, result.RowsAffected)
 	})
 
 	t.Run("Read a new Account", func(t *testing.T) {
-		savedAccount, err := dao.ReadAccount(id)
-		if err != nil {
-			t.Fatal("Failed to Read account from the MySQL DB!", err)
+		readAccount := Account{
+			Model: gorm.Model{ID: account.ID},
 		}
-		assert.Equal(t, savedAccount, &account)
+		result := dao.GormDB.Find(&readAccount)
+
+		assert.NoError(t, result.Error)
+		assert.NotZero(t, result.RowsAffected)
+		assert.Equal(t, account.Name, readAccount.Name)
+		assert.Equal(t, account.ID, readAccount.ID)
 	})
 
 	t.Run("Delete a new Account", func(t *testing.T) {
-		deletedAccount, err := dao.DeleteAccount(id)
-		if err != nil {
-			t.Fatal("Failed to delete transaction from the MySQL DB!", err)
+		deletedAccount := Account{
+			Model: gorm.Model{ID: account.ID},
 		}
-
-		assert.Equal(t, *deletedAccount, id)
+		result := dao.GormDB.Delete(&deletedAccount)
+		assert.NoError(t, result.Error)
+		assert.NotZero(t, result.RowsAffected)
 	})
 
-	t.Run("Read a deleted Transaction", func(t *testing.T) {
-		deletedAccount, err := dao.ReadAccount(id)
-		assert.Error(t, err, "sql: no rows in result set")
-		assert.Nil(t, deletedAccount, nil)
+	t.Run("Read a deleted Account", func(t *testing.T) {
+		readAccount := Account{
+			Model: gorm.Model{ID: account.ID},
+		}
+		result := dao.GormDB.Find(&readAccount)
+
+		assert.NoError(t, result.Error)
+		assert.Zero(t, result.RowsAffected)
 	})
 }
 
-func TestStorageDao_WriteTransaction(t *testing.T) {
-	dao, err := NewStorageDao("root", os.Getenv("password"), "127.0.0.1", "budgetApp")
+func Test_BudgetCRUDOperations(t *testing.T) {
+	dao, err := NewStorageDao("root", os.Getenv("PASSWORD"), "127.0.0.1", "budgetApp")
 	if err != nil {
 		log.Fatal("Failed to connect to the MySQL DB!", err)
 	}
-	amount := 100.00
-	memo := "Test Memo"
-	accountId := uuid.New()
-	categoryId := uuid.New()
-	transactionId := uuid.New()
-	location, _ := time.LoadLocation("UTC")
-	date := time.Date(2024, 12, 1, 4, 47, 10, 0, location)
-	account := Account{
-		Name: "DummyAccount",
-		ID:   accountId,
-	}
-	category := Category{
-		Title:          "DummyCategory",
-		AllocatedFunds: 40.3,
-		BudgetID:       uuid.UUID{},
-		ID:             categoryId,
-		Total:          10.4,
-		Allocations:    []string{"test1", "test2"},
+	name := "test-account-001"
+
+	budget := Budget{
+		Name: name,
 	}
 
-	_, err = dao.WriteAccount(account)
+	t.Run("Write a new Budget", func(t *testing.T) {
+		result := dao.GormDB.Create(&budget)
+		assert.NoError(t, result.Error)
+		assert.NotZero(t, result.RowsAffected)
+	})
+
+	t.Run("Read a new Budget", func(t *testing.T) {
+		readBudget := Budget{
+			Model: gorm.Model{ID: budget.ID},
+		}
+		result := dao.GormDB.Find(&readBudget)
+
+		assert.NoError(t, result.Error)
+		assert.NotZero(t, result.RowsAffected)
+		assert.Equal(t, readBudget.Name, budget.Name)
+	})
+
+	t.Run("Delete a new Budget", func(t *testing.T) {
+		deletedBudget := Budget{
+			Model: gorm.Model{ID: budget.ID},
+		}
+		result := dao.GormDB.Delete(&deletedBudget)
+		assert.NoError(t, result.Error)
+		assert.NotZero(t, result.RowsAffected)
+	})
+
+	t.Run("Read a deleted Budget", func(t *testing.T) {
+		readBudget := Budget{
+			Model: gorm.Model{ID: budget.ID},
+		}
+		result := dao.GormDB.Find(&readBudget)
+
+		assert.NoError(t, result.Error)
+		assert.Zero(t, result.RowsAffected)
+	})
+}
+
+func Test_CategoryCRUDOperations(t *testing.T) {
+	dao, err := NewStorageDao("root", os.Getenv("PASSWORD"), "127.0.0.1", "budgetApp")
 	if err != nil {
-		return
+		log.Fatal("Failed to connect to the MySQL DB!", err)
 	}
-	_, err = dao.WriteCategory(category)
+	budgetName := "test-budget-001"
+
+	budget := Budget{
+		Name: budgetName,
+	}
+	dao.GormDB.Create(&budget)
+
+	category := Category{
+		Title:          "test-category",
+		AllocatedFunds: 47.2,
+		BudgetID:       budget.ID,
+		Total:          0,
+		Allocations:    nil,
+	}
+
+	t.Run("Write a new Category", func(t *testing.T) {
+		result := dao.GormDB.Create(&category)
+		assert.NoError(t, result.Error)
+		assert.NotZero(t, result.RowsAffected)
+	})
+
+	t.Run("Read a new Category", func(t *testing.T) {
+		readCategory := Category{
+			Model: gorm.Model{ID: category.ID},
+		}
+		result := dao.GormDB.Find(&readCategory)
+
+		assert.NoError(t, result.Error)
+		assert.NotZero(t, result.RowsAffected)
+		assert.Equal(t, readCategory.Title, category.Title)
+	})
+
+	t.Run("Delete a new Category", func(t *testing.T) {
+		deletedBudget := Category{
+			Model: gorm.Model{ID: category.ID},
+		}
+		result := dao.GormDB.Delete(&deletedBudget)
+		assert.NoError(t, result.Error)
+		assert.NotZero(t, result.RowsAffected)
+	})
+
+	t.Run("Read a deleted Category", func(t *testing.T) {
+		readBudget := Category{
+			Model: gorm.Model{ID: category.ID},
+		}
+		result := dao.GormDB.Find(&readBudget)
+
+		assert.NoError(t, result.Error)
+		assert.Zero(t, result.RowsAffected)
+	})
+}
+
+func Test_AllocationCRUDOperations(t *testing.T) {
+	dao, err := NewStorageDao("root", os.Getenv("PASSWORD"), "127.0.0.1", "budgetApp")
 	if err != nil {
-		return
+		log.Fatal("Failed to connect to the MySQL DB!", err)
 	}
+	budgetName := "test-budget-001"
+	budget := Budget{
+		Name: budgetName,
+	}
+	dao.GormDB.Create(&budget)
+
+	category := Category{
+		Title:          "test-category",
+		AllocatedFunds: 47.2,
+		BudgetID:       budget.ID,
+		Total:          0,
+		Allocations:    nil,
+	}
+	dao.GormDB.Create(&category)
+
+	allocation := Allocation{
+		Amount:     47.0,
+		CategoryID: category.ID,
+	}
+
+	t.Run("Write a new Allocation", func(t *testing.T) {
+		result := dao.GormDB.Create(&allocation)
+		assert.NoError(t, result.Error)
+		assert.NotZero(t, result.RowsAffected)
+	})
+
+	t.Run("Read a new Allocation", func(t *testing.T) {
+		readAllocation := Allocation{
+			Model: gorm.Model{ID: allocation.ID},
+		}
+		result := dao.GormDB.Find(&readAllocation)
+
+		assert.NoError(t, result.Error)
+		assert.NotZero(t, result.RowsAffected)
+		assert.Equal(t, readAllocation.Amount, allocation.Amount)
+		assert.Equal(t, readAllocation.CategoryID, allocation.CategoryID)
+	})
+
+	t.Run("Delete a new Allocation", func(t *testing.T) {
+		deletedAllocation := Allocation{
+			Model: gorm.Model{ID: allocation.ID},
+		}
+		result := dao.GormDB.Delete(&deletedAllocation)
+		assert.NoError(t, result.Error)
+		assert.NotZero(t, result.RowsAffected)
+	})
+
+	t.Run("Read a new Allocation", func(t *testing.T) {
+		readAllocation := Allocation{
+			Model: gorm.Model{ID: allocation.ID},
+		}
+		result := dao.GormDB.Find(&readAllocation)
+
+		assert.NoError(t, result.Error)
+		assert.Zero(t, result.RowsAffected)
+	})
+}
+
+func Test_TransactionCRUDOperations(t *testing.T) {
+	dao, err := NewStorageDao("root", os.Getenv("PASSWORD"), "127.0.0.1", "budgetApp")
+	if err != nil {
+		log.Fatal("Failed to connect to the MySQL DB!", err)
+	}
+	budgetName := "test-budget-001"
+	budget := Budget{
+		Name: budgetName,
+	}
+	dao.GormDB.Create(&budget)
+
+	category := Category{
+		Title:          "test-category",
+		AllocatedFunds: 47.2,
+		BudgetID:       budget.ID,
+		Total:          0,
+		Allocations:    nil,
+	}
+	dao.GormDB.Create(&category)
+
+	allocation := Allocation{
+		Amount:     47.0,
+		CategoryID: category.ID,
+	}
+	dao.GormDB.Create(&allocation)
+
+	name := "test-account-003"
+
+	account := Account{
+		Name: name,
+	}
+	dao.GormDB.Create(&account)
 
 	transaction := Transaction{
-		Amount:   amount,
-		Memo:     memo,
-		Account:  account,
-		Category: category,
-		ID:       transactionId,
-		Date:     date,
+		Amount:     23,
+		Memo:       "Some Memo Test",
+		AccountID:  account.ID,
+		CategoryID: category.ID,
+		Date:       time.Now(),
 	}
 
 	t.Run("Write a new Transaction", func(t *testing.T) {
-		_, err := dao.WriteTransaction(transaction)
-		if err != nil {
-			t.Fatal("Failed to write Transaction to the MySQL DB!", err)
-		}
+		result := dao.GormDB.Create(&transaction)
+		assert.NoError(t, result.Error)
+		assert.NotZero(t, result.RowsAffected)
 	})
 
 	t.Run("Read a new Transaction", func(t *testing.T) {
-		savedTransaction, err := dao.ReadTransaction(transactionId)
-		if err != nil {
-			t.Fatal("Failed to Read Transaction from the MySQL DB!", err)
+		readTransaction := Transaction{
+			Model: gorm.Model{ID: transaction.ID},
 		}
-		assert.Equal(t, &transaction, savedTransaction)
+		result := dao.GormDB.Find(&readTransaction)
+
+		assert.NoError(t, result.Error)
+		assert.NotZero(t, result.RowsAffected)
+		assert.Equal(t, readTransaction.Amount, transaction.Amount)
+		assert.Equal(t, readTransaction.CategoryID, transaction.CategoryID)
 	})
 
 	t.Run("Delete a new Transaction", func(t *testing.T) {
-		deletedTransaction, err := dao.DeleteTransaction(transactionId)
-		if err != nil {
-			t.Fatal("Failed to delete transaction from the MySQL DB!", err)
+		deletedTransaction := Transaction{
+			Model: gorm.Model{ID: transaction.ID},
 		}
-
-		assert.Equal(t, deletedTransaction, &transactionId)
+		result := dao.GormDB.Delete(&deletedTransaction)
+		assert.NoError(t, result.Error)
+		assert.NotZero(t, result.RowsAffected)
 	})
 
-	t.Run("Read a deleted Transaction", func(t *testing.T) {
-		deletedTransaction, err := dao.ReadTransaction(transactionId)
-		assert.Error(t, err, "sql: no rows in result set")
-		assert.Nil(t, deletedTransaction)
-	})
-}
-
-func TestStorageDao_WriteCategory(t *testing.T) {
-	dao, err := NewStorageDao("root", os.Getenv("password"), "127.0.0.1", "budgetApp")
-	if err != nil {
-		log.Fatal("Failed to connect to the MySQL DB!", err)
-	}
-	id := uuid.New()
-	title := "Test Title"
-	allocatedFunds := 425.3
-	total := 44.7
-	allocations := []string{"allocation1", "allocation2"}
-
-	category := Category{
-		ID:             id,
-		Title:          title,
-		AllocatedFunds: allocatedFunds,
-		Total:          total,
-		Allocations:    allocations,
-	}
-
-	t.Run("Write a category", func(t *testing.T) {
-		_, err := dao.WriteCategory(category)
-		if err != nil {
-			t.Fatal("Falied to write category to the MySQL DB!", err)
+	t.Run("Read a new Transaction", func(t *testing.T) {
+		readTransaction := Transaction{
+			Model: gorm.Model{ID: transaction.ID},
 		}
-	})
+		result := dao.GormDB.Find(&readTransaction)
 
-	t.Run("Read a category", func(t *testing.T) {
-		savedCategory, err := dao.ReadCategory(id)
-		if err != nil {
-			t.Fatal("Failed to read category from the MySQL DB!", err)
-		}
-		assert.Equal(t, savedCategory, category)
-	})
-
-	t.Run("Delete a category", func(t *testing.T) {
-		deletedCategory, err := dao.DeleteCategory(id)
-		if err != nil {
-			t.Fatal("Failed to delete transaction from the MySQL DB!", err)
-		}
-
-		assert.Equal(t, *deletedCategory, id)
-	})
-
-	t.Run("Read a deleted category", func(t *testing.T) {
-		deletedCategory, err := dao.ReadBudget(id)
-		assert.Error(t, err, "sql: no rows in result set")
-		assert.Nil(t, deletedCategory, nil)
+		assert.NoError(t, result.Error)
+		assert.Zero(t, result.RowsAffected)
 	})
 }

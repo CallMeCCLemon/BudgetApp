@@ -3,7 +3,6 @@ package main
 import (
 	"BudgetingApp/persistance"
 	"github.com/gin-gonic/gin"
-	"github.com/google/uuid"
 	"log"
 	"net/http"
 	"os"
@@ -24,11 +23,11 @@ func main() {
 
 	r.GET("/budget", func(c *gin.Context) {
 		budgets, err := getAllBudgets(dao)
-		response := map[string][]Budget{
-			"Budgets": budgets,
-		}
 		if err != nil {
 			return
+		}
+		response := map[string][]Budget{
+			"Budgets": budgets,
 		}
 		c.JSON(http.StatusOK, response)
 	})
@@ -45,7 +44,7 @@ func main() {
 }
 
 func getAllBudgets(dao *persistance.StorageDao) (budgets []Budget, err error) {
-	internalBudgets, err := dao.ReadBudgets()
+	internalBudgets, err := dao.GetAllBudgets()
 	if err != nil {
 		log.Fatal("Failed to read all budgets!", err)
 		return
@@ -66,13 +65,13 @@ func toExternal(budget persistance.Budget) Budget {
 
 type Budget struct {
 	Name string
-	ID   uuid.UUID
+	ID   uint
 }
 
 type Category struct {
 	Title       string
 	Budget      Budget
-	ID          uuid.UUID
+	ID          uint
 	Total       float64
 	Allocations []Allocation
 }
@@ -81,7 +80,7 @@ type Allocation struct {
 	// date
 	Amount     float64
 	CategoryID string
-	ID         uuid.UUID
+	ID         uint
 }
 
 type Transaction struct {
@@ -89,13 +88,13 @@ type Transaction struct {
 	Memo     string
 	Account  Account
 	Category Category
-	ID       uuid.UUID
+	ID       uint
 	// date
 }
 
 type Account struct {
 	Name string
-	ID   uuid.UUID
+	ID   uint
 }
 
 func getBudget(storageDao *persistance.StorageDao, id string, month string) (budget Budget, err error) {

@@ -1,4 +1,9 @@
 ---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: budget-app
+---
 apiVersion: mysql.oracle.com/v2
 kind: InnoDBCluster
 metadata:
@@ -10,6 +15,12 @@ spec:
   instances: 2
   router:
     instances: 1
+  datadirVolumeClaimTemplate:
+    accessModes:
+      - ReadWriteOnce
+    resources:
+      requests:
+        storage: 40Gi
 ---
 apiVersion: apps/v1
 kind: Deployment

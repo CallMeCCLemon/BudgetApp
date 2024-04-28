@@ -1,13 +1,13 @@
 CREATE DATABASE budgetApp;
 Use budgetApp;
 
-CREATE TABLE Accounts
+CREATE TABLE accounts
 (
     ID   CHAR(36) PRIMARY KEY,
     Name VARCHAR(255)
 );
 
-CREATE TABLE Budgets
+CREATE TABLE budgets
 (
     ID         CHAR(36) PRIMARY KEY,
     Name       VARCHAR(255),
@@ -17,7 +17,7 @@ CREATE TABLE Budgets
     Accounts   TEXT
 );
 
-CREATE TABLE Categories
+CREATE TABLE categories
 (
     ID             CHAR(36) PRIMARY KEY,
     Title          VARCHAR(255),
@@ -26,15 +26,15 @@ CREATE TABLE Categories
     Allocations    TEXT -- Store UUIDs of Allocation
 );
 
-CREATE TABLE Allocations
+CREATE TABLE allocations
 (
     ID         CHAR(36) PRIMARY KEY,
     Amount     DECIMAL(10, 2),
     CategoryID CHAR(36),
-    FOREIGN KEY (CategoryID) REFERENCES Categories (ID)
+    FOREIGN KEY (CategoryID) REFERENCES categories (ID)
 );
 
-CREATE TABLE Transactions
+CREATE TABLE transactions
 (
     ID         CHAR(36) PRIMARY KEY,
     Amount     DECIMAL(10, 2),
@@ -42,8 +42,12 @@ CREATE TABLE Transactions
     AccountID  CHAR(36),
     CategoryID CHAR(36),
     Date       TIMESTAMP,
-    FOREIGN KEY (AccountID) REFERENCES Accounts (ID),
-    FOREIGN KEY (CategoryID) REFERENCES Categories (ID)
+    FOREIGN KEY (AccountID) REFERENCES accounts (ID),
+    FOREIGN KEY (CategoryID) REFERENCES categories (ID)
 );
 
+UPDATE mysql.user
+SET Host = '%'
+WHERE User = 'root';
 
+FLUSH PRIVILEGES;
