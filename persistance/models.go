@@ -3,6 +3,8 @@ package persistance
 import (
 	"crypto/tls"
 	"database/sql"
+	"errors"
+	"fmt"
 	"github.com/go-sql-driver/mysql"
 	"gorm.io/gorm"
 	"time"
@@ -100,5 +102,19 @@ func createGormInstance(db *sql.DB) (*gorm.DB, error) {
 
 func (dao *StorageDao) GetAllBudgets() (budgets []Budget, err error) {
 	dao.GormDB.Find(&budgets)
+	return
+}
+
+func (dao *StorageDao) GetBudget(id uint) (budget Budget, err error) {
+	budget = Budget{
+		Model: gorm.Model{ID: id},
+	}
+	result := dao.GormDB.First(&budget)
+	if result.Error != nil {
+		return budget, result.Error
+	}
+	if result.RowsAffected == 0 {
+		return budget, errors.New(fmt.Sprintf("No rows found for ID %d", id))
+	}
 	return
 }

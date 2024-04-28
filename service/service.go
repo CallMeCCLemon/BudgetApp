@@ -36,6 +36,21 @@ func setupServer(dao *persistance.StorageDao) *gin.Engine {
 		}
 		c.JSON(http.StatusOK, response)
 	})
+
+	g.GET("/budget/:id", func(c *gin.Context) {
+		var query Query
+		err := c.ShouldBindUri(&query)
+		if err != nil {
+			c.JSON(400, gin.H{"Message": "Invalid ID"})
+			return
+		}
+		budget, err := dao.GetBudget(query.ID)
+		if err != nil {
+			c.JSON(400, gin.H{"Message": "No Budget found for ID"})
+			return
+		}
+		c.JSON(200, toExternal(budget))
+	})
 	// Routes
 	// /budget -> Get all budgets for user
 	// /budget/${id} -> Get single budget with categories and computations
@@ -59,11 +74,27 @@ func getAllBudgets(dao *persistance.StorageDao) (budgets []Budget, err error) {
 	return
 }
 
+func getBudget(dao *persistance.StorageDao, id uint) (budget Budget, err error) {
+	internalBudget, err := dao.GetBudget(id)
+	if err != nil {
+		log.Fatal("Failed to read budget!", err)
+		return
+	}
+	budget = toExternal(internalBudget)
+
+	log.Default().Println("Returning budget: ", budget)
+	return
+}
+
 func toExternal(budget persistance.Budget) Budget {
 	return Budget{
 		Name: budget.Name,
 		ID:   budget.ID,
 	}
+}
+
+type Query struct {
+	ID uint `uri:"name"`
 }
 
 type Budget struct {
