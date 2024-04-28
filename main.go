@@ -6,7 +6,7 @@ import (
 )
 
 func main() {
-	err := service.Run()
+	err := service.Start()
 	if err != nil {
 		log.Fatal("Received error from gin server!", err)
 	}

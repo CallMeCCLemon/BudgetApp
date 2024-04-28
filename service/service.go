@@ -8,7 +8,7 @@ import (
 	"os"
 )
 
-func Run() error {
+func Start() error {
 	dao, err := persistance.NewStorageDao(os.Getenv("USERNAME"), os.Getenv("PASSWORD"), os.Getenv("HOST"), "budgetApp")
 	if err != nil {
 		return err
