@@ -6,7 +6,7 @@ export default function Navbar() {
         <main className="flex navbar">
             <ul className="horizontal">
                 <li><Link href="/">Home</Link></li>
-                <li><Link href="/">Budget</Link></li>
+                <li><Link href="/budget">Budget</Link></li>
                 <li className="dropdown">
                     <Link href="javascript:void(0)" className="dropbtn">Account</Link>
                     <div className="dropdown-content right">
