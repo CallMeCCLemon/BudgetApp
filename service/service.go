@@ -27,6 +27,12 @@ func setupServer(dao *persistance.StorageDao) *gin.Engine {
 		})
 	})
 
+	addBudgetRoutes(g, dao)
+
+	return g
+}
+
+func addBudgetRoutes(g *gin.Engine, dao *persistance.StorageDao) {
 	g.GET("/budget", func(c *gin.Context) {
 		budgets, err := getAllBudgets(dao)
 		if err != nil {
@@ -36,6 +42,7 @@ func setupServer(dao *persistance.StorageDao) *gin.Engine {
 			"Budgets": budgets,
 		}
 		c.JSON(http.StatusOK, response)
+		return
 	})
 
 	g.GET("/budget/:id", func(c *gin.Context) {
@@ -71,7 +78,30 @@ func setupServer(dao *persistance.StorageDao) *gin.Engine {
 		return
 	})
 
-	return g
+	g.DELETE("/budget/:id", func(c *gin.Context) {
+		var query Query
+		err := c.ShouldBindUri(&query)
+		if err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"Message": err})
+			return
+		}
+
+		result := dao.GormDB.Delete(&Budget{}, query.ID)
+		if result.Error != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"Message": result.Error})
+			return
+		}
+
+		if result.RowsAffected == 0 {
+			c.JSON(http.StatusBadRequest, gin.H{"Message": "No Budget found for ID"})
+			return
+		}
+
+		c.JSON(http.StatusOK, nil)
+		return
+	})
+
+	return
 }
 
 func getAllBudgets(dao *persistance.StorageDao) (budgets []Budget, err error) {
