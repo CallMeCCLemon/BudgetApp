@@ -1,3 +1,7 @@
 .idea/**/*
 .DS_Store
 kubeconfig.yaml
+web-app/.next
+web-app/node_modules
+.next
+node_modules
