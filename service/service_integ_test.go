@@ -10,6 +10,7 @@ import (
 	"net/http/httptest"
 	"os"
 	"testing"
+	"time"
 )
 
 func Test_budget_CRUD_operations_test(t *testing.T) {
@@ -232,6 +233,95 @@ func Test_category_CRUD_operations_test(t *testing.T) {
 
 	t.Run("Delete a Category", func(t *testing.T) {
 		req, err := http.NewRequest("DELETE", fmt.Sprintf("%s/category/%d", ts.URL, category.ID), nil)
+		if err != nil {
+			t.Fatalf("Expected no error, got %v", err)
+		}
+		resp, err := client.Do(req)
+
+		buf := new(bytes.Buffer)
+		_, _ = buf.ReadFrom(resp.Body)
+
+		assert.Equal(t, http.StatusOK, resp.StatusCode)
+	})
+}
+
+func Test_transaction_CRUD_operations_test(t *testing.T) {
+	dao, err := persistance.NewStorageDao(os.Getenv("USERNAME"), os.Getenv("PASSWORD"), os.Getenv("HOST"), "budgetApp")
+	if err != nil {
+		return
+	}
+	ts := httptest.NewServer(setupServer(dao))
+	defer ts.Close()
+
+	client := &http.Client{}
+
+	budgetName := "integ-test-budget-001"
+	accountName := "integ-test-account-001"
+	categoryTitle := "integ-test-category-001"
+	transactionMemo := "integ-test-transaction-001"
+
+	budget := persistance.Budget{
+		Name: budgetName,
+	}
+	dao.GormDB.Create(&budget)
+	account := persistance.Account{
+		Name:     accountName,
+		BudgetID: budget.ID,
+	}
+	dao.GormDB.Create(&account)
+	category := Category{
+		Title:    categoryTitle,
+		BudgetID: budget.ID,
+		Total:    478,
+	}
+	dao.GormDB.Create(&category)
+	transaction := Transaction{
+		Amount:     472,
+		Memo:       transactionMemo,
+		AccountID:  account.ID,
+		CategoryID: category.ID,
+		Date:       time.Now(),
+	}
+
+	t.Run("Create a transaction", func(t *testing.T) {
+		body, err := json.Marshal(transaction)
+		if err != nil {
+			return
+		}
+
+		resp, err := http.Post(
+			fmt.Sprintf("%s/transaction", ts.URL),
+			"application/json",
+			bytes.NewBuffer(body),
+		)
+		if err != nil {
+			t.Fatalf("Expected no error, got %v", err)
+		}
+		buf := new(bytes.Buffer)
+		_, _ = buf.ReadFrom(resp.Body)
+		println(buf.String())
+		var newTransaction Transaction
+		_ = json.Unmarshal(buf.Bytes(), &newTransaction)
+
+		assert.Equal(t, http.StatusOK, resp.StatusCode)
+		assert.Equal(t, transaction.Memo, newTransaction.Memo)
+
+		transaction = newTransaction
+	})
+
+	t.Run("Read a single transaction", func(t *testing.T) {
+		resp, err := http.Get(fmt.Sprintf("%s/transaction/%d", ts.URL, transaction.ID))
+		if err != nil {
+			t.Fatalf("Expected no error, got %v", err)
+		}
+		buf := new(bytes.Buffer)
+		_, _ = buf.ReadFrom(resp.Body)
+
+		assert.Equal(t, http.StatusOK, resp.StatusCode)
+	})
+
+	t.Run("Delete a transaction", func(t *testing.T) {
+		req, err := http.NewRequest("DELETE", fmt.Sprintf("%s/category/%d", ts.URL, transaction.ID), nil)
 		if err != nil {
 			t.Fatalf("Expected no error, got %v", err)
 		}

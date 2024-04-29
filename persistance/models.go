@@ -146,3 +146,17 @@ func (dao *StorageDao) GetCategory(id uint) (category *Category, err error) {
 	}
 	return
 }
+
+func (dao *StorageDao) GetTransaction(id uint) (transaction *Transaction, err error) {
+	transaction = &Transaction{
+		Model: gorm.Model{ID: id},
+	}
+	result := dao.GormDB.First(&transaction)
+	if result.Error != nil {
+		return nil, result.Error
+	}
+	if result.RowsAffected == 0 {
+		return nil, errors.New(fmt.Sprintf("No rows found for ID %d", id))
+	}
+	return
+}

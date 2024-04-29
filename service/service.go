@@ -29,6 +29,7 @@ func setupServer(dao *persistance.StorageDao) *gin.Engine {
 	addBudgetRoutes(g, dao)
 	addAccountRoutes(g, dao)
 	addCategoryRoutes(g, dao)
+	addTransactionRoutes(g, dao)
 
 	return g
 }
@@ -215,6 +216,66 @@ func addCategoryRoutes(g *gin.Engine, dao *persistance.StorageDao) {
 
 		if result.RowsAffected == 0 {
 			c.JSON(http.StatusBadRequest, gin.H{"Message": "No Category found for ID"})
+			return
+		}
+
+		c.JSON(http.StatusOK, nil)
+		return
+	})
+
+	return
+}
+
+func addTransactionRoutes(g *gin.Engine, dao *persistance.StorageDao) {
+	g.GET("/transaction/:id", func(c *gin.Context) {
+		var query Query
+		err := c.ShouldBindUri(&query)
+		if err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"Message": "Invalid ID"})
+			return
+		}
+		transaction, err := dao.GetTransaction(query.ID)
+		if err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"Message": "No Category found for ID"})
+			return
+		}
+		c.JSON(http.StatusOK, toExternalTransaction(*transaction))
+		return
+	})
+
+	g.POST("/transaction", func(c *gin.Context) {
+		var transaction Transaction
+		err := c.Bind(&transaction)
+		if err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"Message": "Invalid Transaction"})
+			return
+		}
+		internalTransaction := toInternalTransaction(transaction)
+		result := dao.GormDB.Create(&internalTransaction)
+		if result.Error != nil || result.RowsAffected == 0 {
+			c.JSON(http.StatusInternalServerError, gin.H{"Message": "Failed to create Transaction!"})
+			return
+		}
+		c.JSON(http.StatusOK, toExternalTransaction(internalTransaction))
+		return
+	})
+
+	g.DELETE("/transaction/:id", func(c *gin.Context) {
+		var query Query
+		err := c.ShouldBindUri(&query)
+		if err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"Message": err})
+			return
+		}
+
+		result := dao.GormDB.Delete(&persistance.Transaction{}, query.ID)
+		if result.Error != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"Message": result.Error})
+			return
+		}
+
+		if result.RowsAffected == 0 {
+			c.JSON(http.StatusBadRequest, gin.H{"Message": "No Transaction found for ID"})
 			return
 		}
 

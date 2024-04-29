@@ -31,12 +31,12 @@ type Allocation struct {
 }
 
 type Transaction struct {
-	Amount   float64
-	Memo     string
-	Account  Account
-	Category Category
-	ID       uint
-	// date
+	Amount     float64
+	Memo       string
+	AccountID  uint
+	CategoryID uint
+	ID         uint
+	Date       time.Time
 }
 
 type Account struct {
@@ -90,5 +90,27 @@ func toInternalCategory(category Category) persistance.Category {
 		Title:    category.Title,
 		BudgetID: category.BudgetID,
 		Total:    category.Total,
+	}
+}
+
+func toExternalTransaction(transaction persistance.Transaction) Transaction {
+	return Transaction{
+		Amount:     transaction.Amount,
+		Memo:       transaction.Memo,
+		AccountID:  transaction.AccountID,
+		CategoryID: transaction.CategoryID,
+		ID:         transaction.ID,
+		Date:       transaction.Date,
+	}
+}
+
+func toInternalTransaction(transaction Transaction) persistance.Transaction {
+	return persistance.Transaction{
+		Model:      gorm.Model{ID: transaction.ID},
+		Amount:     transaction.Amount,
+		Memo:       transaction.Memo,
+		AccountID:  transaction.AccountID,
+		CategoryID: transaction.CategoryID,
+		Date:       transaction.Date,
 	}
 }
