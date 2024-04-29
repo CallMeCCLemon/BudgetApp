@@ -131,11 +131,9 @@ func Test_CategoryCRUDOperations(t *testing.T) {
 	dao.GormDB.Create(&budget)
 
 	category := Category{
-		Title:          "test-category",
-		AllocatedFunds: 47.2,
-		BudgetID:       budget.ID,
-		Total:          0,
-		Allocations:    nil,
+		Title:    "test-category",
+		BudgetID: budget.ID,
+		Total:    0,
 	}
 
 	t.Run("Write a new Category", func(t *testing.T) {
@@ -187,11 +185,9 @@ func Test_AllocationCRUDOperations(t *testing.T) {
 	dao.GormDB.Create(&budget)
 
 	category := Category{
-		Title:          "test-category",
-		AllocatedFunds: 47.2,
-		BudgetID:       budget.ID,
-		Total:          0,
-		Allocations:    nil,
+		Title:    "test-category",
+		BudgetID: budget.ID,
+		Total:    0,
 	}
 	dao.GormDB.Create(&category)
 
@@ -250,11 +246,9 @@ func Test_TransactionCRUDOperations(t *testing.T) {
 	dao.GormDB.Create(&budget)
 
 	category := Category{
-		Title:          "test-category",
-		AllocatedFunds: 47.2,
-		BudgetID:       budget.ID,
-		Total:          0,
-		Allocations:    nil,
+		Title:    "test-category",
+		BudgetID: budget.ID,
+		Total:    0,
 	}
 	dao.GormDB.Create(&category)
 

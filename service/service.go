@@ -30,6 +30,7 @@ func setupServer(dao *persistance.StorageDao) *gin.Engine {
 	addAccountRoutes(g, dao)
 	addCategoryRoutes(g, dao)
 	addTransactionRoutes(g, dao)
+	addAllocationRoutes(g, dao)
 
 	return g
 }
@@ -276,6 +277,66 @@ func addTransactionRoutes(g *gin.Engine, dao *persistance.StorageDao) {
 
 		if result.RowsAffected == 0 {
 			c.JSON(http.StatusBadRequest, gin.H{"Message": "No Transaction found for ID"})
+			return
+		}
+
+		c.JSON(http.StatusOK, nil)
+		return
+	})
+
+	return
+}
+
+func addAllocationRoutes(g *gin.Engine, dao *persistance.StorageDao) {
+	g.GET("/allocation/:id", func(c *gin.Context) {
+		var query Query
+		err := c.ShouldBindUri(&query)
+		if err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"Message": "Invalid ID"})
+			return
+		}
+		allocation, err := dao.GetAllocation(query.ID)
+		if err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"Message": "No Allocation found for ID"})
+			return
+		}
+		c.JSON(http.StatusOK, toExternalAllocation(*allocation))
+		return
+	})
+
+	g.POST("/allocation", func(c *gin.Context) {
+		var allocation Allocation
+		err := c.Bind(&allocation)
+		if err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"Message": "Invalid Transaction"})
+			return
+		}
+		internalAllocation := toInternalAllocation(allocation)
+		result := dao.GormDB.Create(&internalAllocation)
+		if result.Error != nil || result.RowsAffected == 0 {
+			c.JSON(http.StatusInternalServerError, gin.H{"Message": "Failed to create Allocation!"})
+			return
+		}
+		c.JSON(http.StatusOK, toExternalAllocation(internalAllocation))
+		return
+	})
+
+	g.DELETE("/allocation/:id", func(c *gin.Context) {
+		var query Query
+		err := c.ShouldBindUri(&query)
+		if err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"Message": err})
+			return
+		}
+
+		result := dao.GormDB.Delete(&persistance.Allocation{}, query.ID)
+		if result.Error != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"Message": result.Error})
+			return
+		}
+
+		if result.RowsAffected == 0 {
+			c.JSON(http.StatusBadRequest, gin.H{"Message": "No Allocation found for ID"})
 			return
 		}
 

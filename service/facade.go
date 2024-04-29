@@ -23,9 +23,8 @@ type Category struct {
 }
 
 type Allocation struct {
-	// date
 	Amount        float64
-	CategoryID    string
+	CategoryID    uint
 	ID            uint
 	AssignedMonth time.Time
 }
@@ -112,5 +111,23 @@ func toInternalTransaction(transaction Transaction) persistance.Transaction {
 		AccountID:  transaction.AccountID,
 		CategoryID: transaction.CategoryID,
 		Date:       transaction.Date,
+	}
+}
+
+func toExternalAllocation(transaction persistance.Allocation) Allocation {
+	return Allocation{
+		Amount:        transaction.Amount,
+		CategoryID:    transaction.CategoryID,
+		ID:            transaction.ID,
+		AssignedMonth: transaction.AssignedMonth,
+	}
+}
+
+func toInternalAllocation(transaction Allocation) persistance.Allocation {
+	return persistance.Allocation{
+		Model:         gorm.Model{ID: transaction.ID},
+		Amount:        transaction.Amount,
+		CategoryID:    transaction.CategoryID,
+		AssignedMonth: transaction.AssignedMonth,
 	}
 }

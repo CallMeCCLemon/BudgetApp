@@ -321,7 +321,89 @@ func Test_transaction_CRUD_operations_test(t *testing.T) {
 	})
 
 	t.Run("Delete a transaction", func(t *testing.T) {
-		req, err := http.NewRequest("DELETE", fmt.Sprintf("%s/category/%d", ts.URL, transaction.ID), nil)
+		req, err := http.NewRequest("DELETE", fmt.Sprintf("%s/transaction/%d", ts.URL, transaction.ID), nil)
+		if err != nil {
+			t.Fatalf("Expected no error, got %v", err)
+		}
+		resp, err := client.Do(req)
+
+		buf := new(bytes.Buffer)
+		_, _ = buf.ReadFrom(resp.Body)
+
+		assert.Equal(t, http.StatusOK, resp.StatusCode)
+	})
+}
+
+func Test_allocation_CRUD_operations_test(t *testing.T) {
+	dao, err := persistance.NewStorageDao(os.Getenv("USERNAME"), os.Getenv("PASSWORD"), os.Getenv("HOST"), "budgetApp")
+	if err != nil {
+		return
+	}
+	ts := httptest.NewServer(setupServer(dao))
+	defer ts.Close()
+
+	client := &http.Client{}
+
+	budgetName := "integ-test-budget-001"
+	categoryTitle := "integ-test-category-001"
+
+	budget := persistance.Budget{
+		Name: budgetName,
+	}
+	dao.GormDB.Create(&budget)
+
+	category := Category{
+		Title:    categoryTitle,
+		BudgetID: budget.ID,
+		Total:    478,
+	}
+	dao.GormDB.Create(&category)
+
+	allocation := Allocation{
+		Amount:        777.33,
+		CategoryID:    category.ID,
+		AssignedMonth: time.Now(),
+	}
+
+	t.Run("Create an allocation", func(t *testing.T) {
+		body, err := json.Marshal(allocation)
+		if err != nil {
+			return
+		}
+
+		resp, err := http.Post(
+			fmt.Sprintf("%s/allocation", ts.URL),
+			"application/json",
+			bytes.NewBuffer(body),
+		)
+		if err != nil {
+			t.Fatalf("Expected no error, got %v", err)
+		}
+		buf := new(bytes.Buffer)
+		_, _ = buf.ReadFrom(resp.Body)
+		println(buf.String())
+		var newAllocation Allocation
+		_ = json.Unmarshal(buf.Bytes(), &newAllocation)
+
+		assert.Equal(t, http.StatusOK, resp.StatusCode)
+		assert.Equal(t, allocation.Amount, newAllocation.Amount)
+
+		allocation = newAllocation
+	})
+
+	t.Run("Read a single allocation", func(t *testing.T) {
+		resp, err := http.Get(fmt.Sprintf("%s/allocation/%d", ts.URL, allocation.ID))
+		if err != nil {
+			t.Fatalf("Expected no error, got %v", err)
+		}
+		buf := new(bytes.Buffer)
+		_, _ = buf.ReadFrom(resp.Body)
+
+		assert.Equal(t, http.StatusOK, resp.StatusCode)
+	})
+
+	t.Run("Delete an allocation", func(t *testing.T) {
+		req, err := http.NewRequest("DELETE", fmt.Sprintf("%s/allocation/%d", ts.URL, allocation.ID), nil)
 		if err != nil {
 			t.Fatalf("Expected no error, got %v", err)
 		}
