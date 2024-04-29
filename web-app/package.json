@@ -22,7 +22,7 @@
     "web-vitals": "^2.1.4"
   },
   "scripts": {
-    "start": "next start",
+    "start": "next build && next start",
     "build": "next build",
     "test": "react-scripts test",
     "eject": "react-scripts eject"
