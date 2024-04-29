@@ -2,9 +2,10 @@
 
 ## 1.0 Features
 
-* CRUD Budget
+* CRUD Budget - DONE
   * Create budget
   * Read budget
+  * Delete budget
 * CRUD Category
   * Create Category
   * Delete Category

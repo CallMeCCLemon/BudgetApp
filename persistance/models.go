@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/go-sql-driver/mysql"
+	"gorm.io/datatypes"
 	"gorm.io/gorm"
 	"time"
 
@@ -21,16 +22,16 @@ type Budget struct {
 
 type Category struct {
 	gorm.Model
-	Title          string
-	AllocatedFunds float64
-	BudgetID       uint `gorm:"foreignKey:BudgetRefer"`
-	Total          float64
+	Title    string
+	BudgetID uint `gorm:"foreignKey:BudgetRefer"`
+	Total    float64
 }
 
 type Allocation struct {
 	gorm.Model
-	Amount     float64
-	CategoryID uint
+	Amount        float64
+	CategoryID    uint
+	AssignedMonth datatypes.Date
 }
 
 type Transaction struct {
@@ -123,6 +124,20 @@ func (dao *StorageDao) GetAccount(id uint) (account *Account, err error) {
 		Model: gorm.Model{ID: id},
 	}
 	result := dao.GormDB.First(&account)
+	if result.Error != nil {
+		return nil, result.Error
+	}
+	if result.RowsAffected == 0 {
+		return nil, errors.New(fmt.Sprintf("No rows found for ID %d", id))
+	}
+	return
+}
+
+func (dao *StorageDao) GetCategory(id uint) (category *Category, err error) {
+	category = &Category{
+		Model: gorm.Model{ID: id},
+	}
+	result := dao.GormDB.First(&category)
 	if result.Error != nil {
 		return nil, result.Error
 	}

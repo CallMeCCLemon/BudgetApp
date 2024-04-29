@@ -3,7 +3,6 @@ package service
 import (
 	"BudgetingApp/persistance"
 	"github.com/gin-gonic/gin"
-	"gorm.io/gorm"
 	"log"
 	"net/http"
 	"os"
@@ -29,6 +28,7 @@ func setupServer(dao *persistance.StorageDao) *gin.Engine {
 
 	addBudgetRoutes(g, dao)
 	addAccountRoutes(g, dao)
+	addCategoryRoutes(g, dao)
 
 	return g
 }
@@ -50,7 +50,7 @@ func addBudgetRoutes(g *gin.Engine, dao *persistance.StorageDao) {
 		var query Query
 		err := c.ShouldBindUri(&query)
 		if err != nil {
-			c.JSON(400, gin.H{"Message": "Invalid ID"})
+			c.JSON(http.StatusBadRequest, gin.H{"Message": "Invalid ID"})
 			return
 		}
 		budget, err := dao.GetBudget(query.ID)
@@ -110,7 +110,7 @@ func addAccountRoutes(g *gin.Engine, dao *persistance.StorageDao) {
 		var query Query
 		err := c.ShouldBindUri(&query)
 		if err != nil {
-			c.JSON(400, gin.H{"Message": "Invalid ID"})
+			c.JSON(http.StatusBadRequest, gin.H{"Message": "Invalid ID"})
 			return
 		}
 		budget, err := dao.GetBudget(query.ID)
@@ -165,6 +165,66 @@ func addAccountRoutes(g *gin.Engine, dao *persistance.StorageDao) {
 	return
 }
 
+func addCategoryRoutes(g *gin.Engine, dao *persistance.StorageDao) {
+	g.GET("/category/:id", func(c *gin.Context) {
+		var query Query
+		err := c.ShouldBindUri(&query)
+		if err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"Message": "Invalid ID"})
+			return
+		}
+		category, err := dao.GetCategory(query.ID)
+		if err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"Message": "No Category found for ID"})
+			return
+		}
+		c.JSON(http.StatusOK, toExternalCategory(*category))
+		return
+	})
+
+	g.POST("/category", func(c *gin.Context) {
+		var category Category
+		err := c.Bind(&category)
+		if err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"Message": "Invalid Category"})
+			return
+		}
+		internalCategory := toInternalCategory(category)
+		result := dao.GormDB.Create(&internalCategory)
+		if result.Error != nil || result.RowsAffected == 0 {
+			c.JSON(http.StatusInternalServerError, gin.H{"Message": "Failed to create Category!"})
+			return
+		}
+		c.JSON(http.StatusOK, toExternalCategory(internalCategory))
+		return
+	})
+
+	g.DELETE("/category/:id", func(c *gin.Context) {
+		var query Query
+		err := c.ShouldBindUri(&query)
+		if err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"Message": err})
+			return
+		}
+
+		result := dao.GormDB.Delete(&persistance.Category{}, query.ID)
+		if result.Error != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"Message": result.Error})
+			return
+		}
+
+		if result.RowsAffected == 0 {
+			c.JSON(http.StatusBadRequest, gin.H{"Message": "No Category found for ID"})
+			return
+		}
+
+		c.JSON(http.StatusOK, nil)
+		return
+	})
+
+	return
+}
+
 func getAllBudgets(dao *persistance.StorageDao) (budgets []Budget, err error) {
 	internalBudgets, err := dao.GetAllBudgets()
 	if err != nil {
@@ -176,73 +236,4 @@ func getAllBudgets(dao *persistance.StorageDao) (budgets []Budget, err error) {
 	}
 	log.Default().Println("Returning budgets: ", budgets)
 	return
-}
-
-func toExternalBudget(budget persistance.Budget) Budget {
-	return Budget{
-		Name: budget.Name,
-		ID:   budget.ID,
-	}
-}
-
-func toInternalBudget(budget Budget) persistance.Budget {
-	return persistance.Budget{
-		Name:  budget.Name,
-		Model: gorm.Model{ID: budget.ID},
-	}
-}
-
-func toExternalAccount(account persistance.Account) Account {
-	return Account{
-		ID:       account.ID,
-		Name:     account.Name,
-		BudgetID: account.BudgetID,
-	}
-}
-
-func toInternalAccount(account Account) persistance.Account {
-	return persistance.Account{
-		Model:    gorm.Model{ID: account.ID},
-		Name:     account.Name,
-		BudgetID: account.BudgetID,
-	}
-}
-
-type Query struct {
-	ID uint `uri:"id"`
-}
-
-type Budget struct {
-	Name string `uri:"name"`
-	ID   uint   `uri:"id"`
-}
-
-type Category struct {
-	Title       string
-	Budget      Budget
-	ID          uint
-	Total       float64
-	Allocations []Allocation
-}
-
-type Allocation struct {
-	// date
-	Amount     float64
-	CategoryID string
-	ID         uint
-}
-
-type Transaction struct {
-	Amount   float64
-	Memo     string
-	Account  Account
-	Category Category
-	ID       uint
-	// date
-}
-
-type Account struct {
-	Name     string
-	ID       uint
-	BudgetID uint
 }
