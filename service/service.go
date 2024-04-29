@@ -28,6 +28,7 @@ func setupServer(dao *persistance.StorageDao) *gin.Engine {
 	})
 
 	addBudgetRoutes(g, dao)
+	addAccountRoutes(g, dao)
 
 	return g
 }
@@ -57,7 +58,7 @@ func addBudgetRoutes(g *gin.Engine, dao *persistance.StorageDao) {
 			c.JSON(http.StatusBadRequest, gin.H{"Message": "No Budget found for ID"})
 			return
 		}
-		c.JSON(http.StatusOK, toExternal(budget))
+		c.JSON(http.StatusOK, toExternalBudget(*budget))
 		return
 	})
 
@@ -65,16 +66,16 @@ func addBudgetRoutes(g *gin.Engine, dao *persistance.StorageDao) {
 		var budget Budget
 		err := c.Bind(&budget)
 		if err != nil {
-			c.JSON(400, gin.H{"Message": "Invalid budget"})
+			c.JSON(http.StatusBadRequest, gin.H{"Message": "Invalid budget"})
 			return
 		}
-		internalBudget := toInternal(budget)
+		internalBudget := toInternalBudget(budget)
 		result := dao.GormDB.Create(&internalBudget)
 		if result.Error != nil || result.RowsAffected == 0 {
 			c.JSON(500, gin.H{"Message": "Failed to create budget!"})
 			return
 		}
-		c.JSON(http.StatusOK, toExternal(internalBudget))
+		c.JSON(http.StatusOK, toExternalBudget(internalBudget))
 		return
 	})
 
@@ -86,7 +87,7 @@ func addBudgetRoutes(g *gin.Engine, dao *persistance.StorageDao) {
 			return
 		}
 
-		result := dao.GormDB.Delete(&Budget{}, query.ID)
+		result := dao.GormDB.Delete(&persistance.Budget{}, query.ID)
 		if result.Error != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"Message": result.Error})
 			return
@@ -104,6 +105,66 @@ func addBudgetRoutes(g *gin.Engine, dao *persistance.StorageDao) {
 	return
 }
 
+func addAccountRoutes(g *gin.Engine, dao *persistance.StorageDao) {
+	g.GET("/account/:id", func(c *gin.Context) {
+		var query Query
+		err := c.ShouldBindUri(&query)
+		if err != nil {
+			c.JSON(400, gin.H{"Message": "Invalid ID"})
+			return
+		}
+		budget, err := dao.GetBudget(query.ID)
+		if err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"Message": "No Account found for ID"})
+			return
+		}
+		c.JSON(http.StatusOK, toExternalBudget(*budget))
+		return
+	})
+
+	g.POST("/account", func(c *gin.Context) {
+		var account Account
+		err := c.Bind(&account)
+		if err != nil {
+			c.JSON(400, gin.H{"Message": "Invalid Account"})
+			return
+		}
+		internalAccount := toInternalAccount(account)
+		result := dao.GormDB.Create(&internalAccount)
+		if result.Error != nil || result.RowsAffected == 0 {
+			c.JSON(http.StatusInternalServerError, gin.H{"Message": "Failed to create Account!"})
+			return
+		}
+		c.JSON(http.StatusOK, toExternalAccount(internalAccount))
+		return
+	})
+
+	g.DELETE("/account/:id", func(c *gin.Context) {
+		var query Query
+		err := c.ShouldBindUri(&query)
+		if err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"Message": err})
+			return
+		}
+
+		result := dao.GormDB.Delete(&persistance.Account{}, query.ID)
+		if result.Error != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"Message": result.Error})
+			return
+		}
+
+		if result.RowsAffected == 0 {
+			c.JSON(http.StatusBadRequest, gin.H{"Message": "No Account found for ID"})
+			return
+		}
+
+		c.JSON(http.StatusOK, nil)
+		return
+	})
+
+	return
+}
+
 func getAllBudgets(dao *persistance.StorageDao) (budgets []Budget, err error) {
 	internalBudgets, err := dao.GetAllBudgets()
 	if err != nil {
@@ -111,23 +172,39 @@ func getAllBudgets(dao *persistance.StorageDao) (budgets []Budget, err error) {
 		return
 	}
 	for _, budget := range internalBudgets {
-		budgets = append(budgets, toExternal(budget))
+		budgets = append(budgets, toExternalBudget(budget))
 	}
 	log.Default().Println("Returning budgets: ", budgets)
 	return
 }
 
-func toExternal(budget persistance.Budget) Budget {
+func toExternalBudget(budget persistance.Budget) Budget {
 	return Budget{
 		Name: budget.Name,
 		ID:   budget.ID,
 	}
 }
 
-func toInternal(budget Budget) persistance.Budget {
+func toInternalBudget(budget Budget) persistance.Budget {
 	return persistance.Budget{
 		Name:  budget.Name,
 		Model: gorm.Model{ID: budget.ID},
+	}
+}
+
+func toExternalAccount(account persistance.Account) Account {
+	return Account{
+		ID:       account.ID,
+		Name:     account.Name,
+		BudgetID: account.BudgetID,
+	}
+}
+
+func toInternalAccount(account Account) persistance.Account {
+	return persistance.Account{
+		Model:    gorm.Model{ID: account.ID},
+		Name:     account.Name,
+		BudgetID: account.BudgetID,
 	}
 }
 
@@ -165,6 +242,7 @@ type Transaction struct {
 }
 
 type Account struct {
-	Name string
-	ID   uint
+	Name     string
+	ID       uint
+	BudgetID uint
 }

@@ -25,7 +25,6 @@ type Category struct {
 	AllocatedFunds float64
 	BudgetID       uint `gorm:"foreignKey:BudgetRefer"`
 	Total          float64
-	Allocations    []string `gorm:"type:VARCHAR(255)"`
 }
 
 type Allocation struct {
@@ -105,8 +104,8 @@ func (dao *StorageDao) GetAllBudgets() (budgets []Budget, err error) {
 	return
 }
 
-func (dao *StorageDao) GetBudget(id uint) (budget Budget, err error) {
-	budget = Budget{
+func (dao *StorageDao) GetBudget(id uint) (budget *Budget, err error) {
+	budget = &Budget{
 		Model: gorm.Model{ID: id},
 	}
 	result := dao.GormDB.First(&budget)
@@ -115,6 +114,20 @@ func (dao *StorageDao) GetBudget(id uint) (budget Budget, err error) {
 	}
 	if result.RowsAffected == 0 {
 		return budget, errors.New(fmt.Sprintf("No rows found for ID %d", id))
+	}
+	return
+}
+
+func (dao *StorageDao) GetAccount(id uint) (account *Account, err error) {
+	account = &Account{
+		Model: gorm.Model{ID: id},
+	}
+	result := dao.GormDB.First(&account)
+	if result.Error != nil {
+		return nil, result.Error
+	}
+	if result.RowsAffected == 0 {
+		return nil, errors.New(fmt.Sprintf("No rows found for ID %d", id))
 	}
 	return
 }
