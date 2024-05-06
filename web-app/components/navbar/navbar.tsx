@@ -12,7 +12,7 @@ export default function Navbar() {
                     <Link href="/budget">Budget</Link>
                     <div className="dropdown-content">
                         {budgets.map(budget => {
-                            let link = '/budget/' + encodeURI(budget);
+                            let link = '/budget?name=' + encodeURI(budget);
                             return <Link key={budget} href={link}>{budget}</Link>
                         })}
                     </div>
