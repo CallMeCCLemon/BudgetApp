@@ -415,3 +415,47 @@ func Test_allocation_CRUD_operations_test(t *testing.T) {
 		assert.Equal(t, http.StatusOK, resp.StatusCode)
 	})
 }
+
+func Test_get_budget_with_categories(t *testing.T) {
+	dao, err := persistance.NewStorageDao(os.Getenv("USERNAME"), os.Getenv("PASSWORD"), os.Getenv("HOST"), "budgetApp")
+	if err != nil {
+		return
+	}
+	ts := httptest.NewServer(setupServer(dao))
+	defer ts.Close()
+
+	budgetName := "integ-test-budget-002"
+	accountName := "integ-test-account-002"
+	categoryTitle := "integ-test-category-007"
+
+	budget := persistance.Budget{
+		Name: budgetName,
+	}
+	dao.GormDB.Create(&budget)
+	account := persistance.Account{
+		Name:     accountName,
+		BudgetID: budget.ID,
+	}
+	dao.GormDB.Create(&account)
+	category := Category{
+		Title:    categoryTitle,
+		BudgetID: budget.ID,
+		Total:    478,
+	}
+	dao.GormDB.Create(&category)
+
+	t.Run("Read a budget with categories", func(t *testing.T) {
+		resp, err := http.Get(fmt.Sprintf("%s/budget/%d", ts.URL, budget.ID))
+		if err != nil {
+			t.Fatalf("Expected no error, got %v", err)
+		}
+		buf := new(bytes.Buffer)
+		var newBudget Budget
+		_, _ = buf.ReadFrom(resp.Body)
+		_ = json.Unmarshal(buf.Bytes(), &newBudget)
+
+		assert.Equal(t, http.StatusOK, resp.StatusCode)
+		assert.NotEmpty(t, newBudget.Categories)
+		assert.Equal(t, category.Title, newBudget.Categories[0].Title)
+	})
+}

@@ -267,4 +267,20 @@
 > | `405`         | `text/html;charset=utf-8`         | None                 
 </details>
 
+<details>
+ <summary><code>GET</code> <code><b>/transactions</b></code> <code>(Gets all transactions)</code></summary>
+
+##### Parameters
+None
+
+##### Responses
+
+> | http code     | content-type                      | response                                 |
+> |---------------|-----------------------------------|------------------------------------------|
+> | `201`         | `text/plain;charset=UTF-8`        | object (JSON or YAML)                    |
+> | `400`         | `application/json`                | `{"code":"400","message":"Bad Request"}` |
+> | `405`         | `text/html;charset=utf-8`         | None                                     
+</details>
+
 ------------------------------------------------------------------------------------------
+

@@ -104,6 +104,11 @@ func (dao *StorageDao) GetAllBudgets() (budgets []Budget, err error) {
 	return
 }
 
+func (dao *StorageDao) GetAllTransactions() (transactions []Transaction, err error) {
+	dao.GormDB.Find(&transactions)
+	return
+}
+
 func (dao *StorageDao) GetBudget(id uint) (budget *Budget, err error) {
 	budget = &Budget{
 		Model: gorm.Model{ID: id},
@@ -129,6 +134,15 @@ func (dao *StorageDao) GetAccount(id uint) (account *Account, err error) {
 	if result.RowsAffected == 0 {
 		return nil, errors.New(fmt.Sprintf("No rows found for ID %d", id))
 	}
+	return
+}
+
+func (dao *StorageDao) GetCategoriesForBudget(budgetId uint) (categories []Category, err error) {
+	result := dao.GormDB.Where("budget_id = ?", budgetId).Find(&categories)
+	if result.Error != nil {
+		return nil, result.Error
+	}
+
 	return
 }
 

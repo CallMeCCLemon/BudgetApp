@@ -60,7 +60,14 @@ func addBudgetRoutes(g *gin.Engine, dao *persistance.StorageDao) {
 			c.JSON(http.StatusBadRequest, gin.H{"Message": "No Budget found for ID"})
 			return
 		}
-		c.JSON(http.StatusOK, toExternalBudget(*budget))
+
+		categories, err := dao.GetCategoriesForBudget(budget.ID)
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"Message": "Failed to get categories for budget"})
+			return
+		}
+
+		c.JSON(http.StatusOK, toExternalBudget(*budget, categories))
 		return
 	})
 
@@ -77,7 +84,7 @@ func addBudgetRoutes(g *gin.Engine, dao *persistance.StorageDao) {
 			c.JSON(500, gin.H{"Message": "Failed to create budget!"})
 			return
 		}
-		c.JSON(http.StatusOK, toExternalBudget(internalBudget))
+		c.JSON(http.StatusOK, toExternalBudget(internalBudget, []persistance.Category{}))
 		return
 	})
 
@@ -115,12 +122,12 @@ func addAccountRoutes(g *gin.Engine, dao *persistance.StorageDao) {
 			c.JSON(http.StatusBadRequest, gin.H{"Message": "Invalid ID"})
 			return
 		}
-		budget, err := dao.GetBudget(query.ID)
+		account, err := dao.GetAccount(query.ID)
 		if err != nil {
 			c.JSON(http.StatusBadRequest, gin.H{"Message": "No Account found for ID"})
 			return
 		}
-		c.JSON(http.StatusOK, toExternalBudget(*budget))
+		c.JSON(http.StatusOK, toExternalAccount(*account))
 		return
 	})
 
@@ -228,6 +235,18 @@ func addCategoryRoutes(g *gin.Engine, dao *persistance.StorageDao) {
 }
 
 func addTransactionRoutes(g *gin.Engine, dao *persistance.StorageDao) {
+	g.GET("/transactions", func(c *gin.Context) {
+		transactions, err := getAllTransactions(dao)
+		if err != nil {
+			return
+		}
+		response := map[string][]Transaction{
+			"Transactions": transactions,
+		}
+		c.JSON(http.StatusOK, response)
+		return
+	})
+
 	g.GET("/transaction/:id", func(c *gin.Context) {
 		var query Query
 		err := c.ShouldBindUri(&query)
@@ -354,8 +373,21 @@ func getAllBudgets(dao *persistance.StorageDao) (budgets []Budget, err error) {
 		return
 	}
 	for _, budget := range internalBudgets {
-		budgets = append(budgets, toExternalBudget(budget))
+		budgets = append(budgets, toExternalBudget(budget, []persistance.Category{}))
 	}
 	log.Default().Println("Returning budgets: ", budgets)
+	return
+}
+
+func getAllTransactions(dao *persistance.StorageDao) (transactions []Transaction, err error) {
+	internalTransactions, err := dao.GetAllTransactions()
+	if err != nil {
+		log.Fatal("Failed to read all budgets!", err)
+		return
+	}
+	for _, transaction := range internalTransactions {
+		transactions = append(transactions, toExternalTransaction(transaction))
+	}
+	log.Default().Println("Returning budgets: ", transactions)
 	return
 }

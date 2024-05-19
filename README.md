@@ -56,3 +56,16 @@ This will start the port-forwarding on your local machine to get started with my
 ```
 kubectl port-forward service/budget-app-mysql-database -n budget-app 3306
 ```
+
+### Create local kind server
+
+```bash
+kind create cluster --name budget-app
+kind get kubeconfig --name budget-app > .kube/config
+
+helm repo add mysql-operator https://mysql.github.io/mysql-operator/
+helm repo update
+helm install my-mysql-operator mysql-operator/mysql-operator --namespace mysql-operator --create-namespace
+
+kubectl create secret generic mysql-passwords -n budget-app --from-literal=rootUser=root --from-literal=rootHost=% --from-literal=rootPassword="dummy-password123!"
+```

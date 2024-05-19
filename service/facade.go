@@ -11,8 +11,9 @@ type Query struct {
 }
 
 type Budget struct {
-	Name string `uri:"name"`
-	ID   uint   `uri:"id"`
+	Name       string `uri:"name"`
+	ID         uint   `uri:"id"`
+	Categories []Category
 }
 
 type Category struct {
@@ -44,10 +45,15 @@ type Account struct {
 	BudgetID uint
 }
 
-func toExternalBudget(budget persistance.Budget) Budget {
+func toExternalBudget(budget persistance.Budget, internalCategories []persistance.Category) Budget {
+	var categories []Category
+	for _, intCat := range internalCategories {
+		categories = append(categories, toExternalCategory(intCat))
+	}
 	return Budget{
-		Name: budget.Name,
-		ID:   budget.ID,
+		Name:       budget.Name,
+		ID:         budget.ID,
+		Categories: categories,
 	}
 }
 

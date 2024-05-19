@@ -153,6 +153,12 @@ func Test_CategoryCRUDOperations(t *testing.T) {
 		assert.Equal(t, readCategory.Title, category.Title)
 	})
 
+	t.Run("Read all categories for a budget", func(t *testing.T) {
+		categories, err := dao.GetCategoriesForBudget(budget.ID)
+		assert.NoError(t, err)
+		assert.NotEmpty(t, categories)
+	})
+
 	t.Run("Delete a new Category", func(t *testing.T) {
 		deletedBudget := Category{
 			Model: gorm.Model{ID: category.ID},
