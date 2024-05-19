@@ -1,0 +1,22 @@
+{
+  "Name": "integ-test-budget-002",
+  "ID": 15,
+  "Categories": [
+    {
+      "Title": "integ-test-category-007",
+      "BudgetID": 15,
+      "ID": 11,
+      "Total": 478,
+      "Spent": 44.7,
+      "Allocated": 200.48
+    },
+    {
+      "Title": "Some other category",
+      "BudgetID": 15,
+      "ID": 42,
+      "Total": 111,
+      "Spent": 99.10,
+      "Allocated": 110.4
+    }
+  ]
+}

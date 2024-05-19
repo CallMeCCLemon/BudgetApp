@@ -9,10 +9,12 @@ export default function RootLayout(
     }) {
     return (
         <html lang="en">
-            <Navbar />
-            <Suspense>
-                <main>{children}</main>
-            </Suspense>
+            <body>
+                <Navbar />
+                <Suspense>
+                    <main>{children}</main>
+                </Suspense>
+            </body>
         </html>
     );
 }
