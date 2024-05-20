@@ -34,9 +34,9 @@ export default function Page() {
             return <tr key={category.ID}>
                 <td>{category.Title}</td>
                 <td>Pending Implementation</td>
-                <td>${category.Allocated}</td>
-                <td>${category.Spent}</td>
-                <td>${category.Total}</td>
+                <td>${category.Allocated.toFixed(2)}</td>
+                <td>${category.Spent.toFixed(2)}</td>
+                <td>${category.Total.toFixed(2)}</td>
             </tr>;
         });
 

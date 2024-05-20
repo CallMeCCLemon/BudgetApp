@@ -24,6 +24,7 @@
   "scripts": {
     "start": "next",
     "build": "next build",
+    "prod-build": "next build && next start",
     "test": "react-scripts test",
     "eject": "react-scripts eject"
   },
