@@ -8,10 +8,10 @@ export default function Navbar() {
 
     return (
         <main className="flex navbar">
-            <ul className="horizontal">
-                <li><Link href="/">Home</Link></li>
-                <li className="dropdown">
-                    <Link href="#">Budgets</Link>
+            <ul className="horizontal navbar-ul">
+                <li className="navbar-li"><Link href="/">Home</Link></li>
+                <li className="dropdown navbar-li">
+                    <Link href={"/budget"}>Budgets</Link>
                     <div className="dropdown-content">
                         {budgets.map(budget => {
                             let link = `/budget/${budget.ID}`;
@@ -19,8 +19,9 @@ export default function Navbar() {
                         })}
                     </div>
                 </li>
-                <li className="dropdown">
-                    <Link href="#" className="dropbtn">Account</Link>
+                <li className="navbar-li"><Link href={"/account"}>Accounts</Link></li>
+                <li className="dropdown navbar-li">
+                    <Link href="#" className="dropbtn navbar-a">Account</Link>
                     <div className="dropdown-content right">
                     <Link href="./login">Login</Link>
                     <Link href="#">Create Account</Link>

@@ -5,6 +5,7 @@ import {Budget, Category} from "@/app/types/BudgetTypes";
 import dummyBudgetData from '../../../test/fixtures/budget.json'
 import {useEffect, useState} from "react";
 import {usePathname, useRouter} from "next/navigation";
+import Table, {COLUMN_TYPE} from "@/components/table/table";
 
 export default function Page() {
     const pathName = usePathname();
@@ -14,7 +15,7 @@ export default function Page() {
     useEffect(() => {
         // TODO: Load Budget Data here!
         const splitPath = pathName.split('/')
-        const budgetId = splitPath[splitPath.length-1]
+        const budgetId = splitPath[splitPath.length - 1]
         console.log(`Budget ID: ${budgetId}`)
         setBudgetData(dummyBudgetData);
     }, [pathName])
@@ -29,37 +30,24 @@ export default function Page() {
         setNewCategory(event.currentTarget.value)
     }
 
-    const getBudgetContent = (budgetData: Budget | undefined) => {
-        const tableData = budgetData?.Categories?.map((category: Category) => {
-            return <tr key={category.ID}>
-                <td>{category.Title}</td>
-                <td>Pending Implementation</td>
-                <td>${category.Allocated.toFixed(2)}</td>
-                <td>${category.Spent.toFixed(2)}</td>
-                <td>${category.Total.toFixed(2)}</td>
-            </tr>;
-        });
+    const columns = [
+        {name: "Title", type: COLUMN_TYPE.string},
+        {name: "ID", type: COLUMN_TYPE.number},
+        {name: "Total", type: COLUMN_TYPE.currency},
+        {name: "Spent", type: COLUMN_TYPE.currency},
+        {name: "Allocated", type: COLUMN_TYPE.currency},
+    ]
 
+
+    const getBudgetContent = (budgetData: Budget | undefined) => {
         if (budgetData !== undefined) {
+
             return (<div>
                 <h1>{budgetData.Name}</h1>
-            {
-                newCategoryForm
-            }
-            <table className="table-auto w-full">
-                <thead>
-                <tr>
-                    <th>Category</th>
-                    <th>Rollover</th>
-                    <th>Allocated</th>
-                    <th>Spent</th>
-                    <th>Total</th>
-                </tr>
-                </thead>
-                <tbody>
-                {tableData}
-                </tbody>
-            </table>
+                {newCategoryForm}
+                <div className="w-full h-full flex flex-col">
+                    <Table columnNames={columns} rowData={budgetData.Categories}/>
+                </div>
             </div>)
         } else {
             // TODO: Implement Spinner here
@@ -75,9 +63,7 @@ export default function Page() {
 
     return (
         <main className="flex min-h-screen flex-col p-6">
-            <div className="w-full flex-row mt-12">
-                {getBudgetContent(budgetData)}
-            </div>
+            {getBudgetContent(budgetData)}
         </main>
     );
 }

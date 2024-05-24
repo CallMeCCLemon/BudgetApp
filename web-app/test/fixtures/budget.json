@@ -6,7 +6,7 @@
       "Title": "integ-test-category-007",
       "BudgetID": 15,
       "ID": 11,
-      "Total": 478,
+      "Total": 111,
       "Spent": 44.7,
       "Allocated": 200.48
     },
@@ -14,8 +14,32 @@
       "Title": "Some other category",
       "BudgetID": 15,
       "ID": 42,
-      "Total": 111,
-      "Spent": 99.10,
+      "Total": 222,
+      "Spent": 100.10,
+      "Allocated": 110.4
+    },
+    {
+      "Title": "Some other Thing",
+      "BudgetID": 15,
+      "ID": 43,
+      "Total": 333,
+      "Spent": 200.10,
+      "Allocated": 110.4
+    },
+    {
+      "Title": "Some other yep",
+      "BudgetID": 15,
+      "ID": 44,
+      "Total": 444,
+      "Spent": 300.10,
+      "Allocated": 110.4
+    },
+    {
+      "Title": "Some other Totally",
+      "BudgetID": 15,
+      "ID": 45,
+      "Total": 555,
+      "Spent": 400.10,
       "Allocated": 110.4
     }
   ]
