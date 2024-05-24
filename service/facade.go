@@ -40,9 +40,10 @@ type Transaction struct {
 }
 
 type Account struct {
-	Name     string
-	ID       uint
-	BudgetID uint
+	Name        string
+	ID          uint
+	BudgetID    uint
+	Transaction []Transaction
 }
 
 func toExternalBudget(budget persistance.Budget, internalCategories []persistance.Category) Budget {

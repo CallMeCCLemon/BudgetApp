@@ -1,10 +1,12 @@
 import Link from "next/link";
 import './navbar.css';
 import budgetData from '../../test/fixtures/budgets.json'
+import dummyAccountData from '../../test/fixtures/accounts.json'
 import {Budget} from "@/app/types/BudgetTypes";
 
 export default function Navbar() {
     let budgets: Budget[] = budgetData.Budgets;
+    let accounts = dummyAccountData.Accounts;
 
     return (
         <main className="flex navbar">
@@ -19,12 +21,20 @@ export default function Navbar() {
                         })}
                     </div>
                 </li>
-                <li className="navbar-li"><Link href={"/account"}>Accounts</Link></li>
+                <li className="dropdown navbar-li">
+                    <Link href={"/account"}>Accounts</Link>
+                    <div className="dropdown-content">
+                        {accounts.map(account => {
+                            let link = `/account/${account.ID}`;
+                            return <Link key={account.ID} href={link}>{account.Name}</Link>
+                        })}
+                    </div>
+                </li>
                 <li className="dropdown navbar-li">
                     <Link href="#" className="dropbtn navbar-a">Account</Link>
                     <div className="dropdown-content right">
-                    <Link href="./login">Login</Link>
-                    <Link href="#">Create Account</Link>
+                        <Link href="./login">Login</Link>
+                        <Link href="#">Create Account</Link>
                     </div>
                 </li>
             </ul>

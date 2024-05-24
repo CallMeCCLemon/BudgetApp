@@ -15,6 +15,7 @@ export enum COLUMN_TYPE {
     string,
     number,
     currency,
+    date
 }
 
 export default function Table(props: TableProps) {
@@ -45,7 +46,6 @@ export default function Table(props: TableProps) {
             if (header.type == COLUMN_TYPE.currency) {
                 content = `\$${content.toFixed(2)}`
             }
-            console.log(trIdx);
             if (trIdx == activeRow) {
                 content = <input value={content}/>;
             }
@@ -58,6 +58,8 @@ export default function Table(props: TableProps) {
         if (trIdx === activeRow) {
             rowContents.push(<td><button>Save</button></td>)
         }
+
+        console.log(trIdx);
 
         return <tr className="flex justify-between w-full" key={trIdx}>
             { rowContents }
