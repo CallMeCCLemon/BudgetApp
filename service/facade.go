@@ -40,10 +40,10 @@ type Transaction struct {
 }
 
 type Account struct {
-	Name        string
-	ID          uint
-	BudgetID    uint
-	Transaction []Transaction
+	Name         string
+	ID           uint
+	BudgetID     uint
+	Transactions []Transaction
 }
 
 func toExternalBudget(budget persistance.Budget, internalCategories []persistance.Category) Budget {
@@ -65,11 +65,16 @@ func toInternalBudget(budget Budget) persistance.Budget {
 	}
 }
 
-func toExternalAccount(account persistance.Account) Account {
+func toExternalAccount(account persistance.Account, internalTransactions []persistance.Transaction) Account {
+	var transactions []Transaction
+	for _, intTransaction := range internalTransactions {
+		transactions = append(transactions, toExternalTransaction(intTransaction))
+	}
 	return Account{
-		ID:       account.ID,
-		Name:     account.Name,
-		BudgetID: account.BudgetID,
+		ID:           account.ID,
+		Name:         account.Name,
+		BudgetID:     account.BudgetID,
+		Transactions: transactions,
 	}
 }
 

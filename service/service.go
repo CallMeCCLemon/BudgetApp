@@ -127,7 +127,14 @@ func addAccountRoutes(g *gin.Engine, dao *persistance.StorageDao) {
 			c.JSON(http.StatusBadRequest, gin.H{"Message": "No Account found for ID"})
 			return
 		}
-		c.JSON(http.StatusOK, toExternalAccount(*account))
+
+		transactions, err := dao.GetTransactionsForAccount(account.ID)
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"Message": "Failed to get transactions for Account"})
+			return
+		}
+
+		c.JSON(http.StatusOK, toExternalAccount(*account, transactions))
 		return
 	})
 
@@ -144,7 +151,7 @@ func addAccountRoutes(g *gin.Engine, dao *persistance.StorageDao) {
 			c.JSON(http.StatusInternalServerError, gin.H{"Message": "Failed to create Account!"})
 			return
 		}
-		c.JSON(http.StatusOK, toExternalAccount(internalAccount))
+		c.JSON(http.StatusOK, toExternalAccount(internalAccount, []persistance.Transaction{}))
 		return
 	})
 

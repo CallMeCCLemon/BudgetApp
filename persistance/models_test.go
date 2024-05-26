@@ -9,18 +9,6 @@ import (
 	"time"
 )
 
-func Test_CreateTables(t *testing.T) {
-	dao, err := NewStorageDao("root", os.Getenv("PASSWORD"), "127.0.0.1", "budgetApp")
-	if err != nil {
-		log.Fatal("Failed to connect to the MySQL DB!", err)
-	}
-	_ = dao.GormDB.Migrator().CreateTable(&Budget{})
-	_ = dao.GormDB.Migrator().CreateTable(&Account{})
-	_ = dao.GormDB.Migrator().CreateTable(&Allocation{})
-	_ = dao.GormDB.Migrator().CreateTable(&Transaction{})
-	_ = dao.GormDB.Migrator().CreateTable(&Category{})
-}
-
 func Test_AccountCRUDOperations(t *testing.T) {
 	dao, err := NewStorageDao(os.Getenv("USERNAME"), os.Getenv("PASSWORD"), os.Getenv("HOST"), "budgetApp")
 	if err != nil {

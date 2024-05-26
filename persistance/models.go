@@ -137,6 +137,15 @@ func (dao *StorageDao) GetAccount(id uint) (account *Account, err error) {
 	return
 }
 
+func (dao *StorageDao) GetTransactionsForAccount(accountID uint) (transactions []Transaction, err error) {
+	result := dao.GormDB.Where("account_id = ?", accountID).Find(&transactions)
+	if result.Error != nil {
+		return nil, result.Error
+	}
+
+	return
+}
+
 func (dao *StorageDao) GetCategoriesForBudget(budgetId uint) (categories []Category, err error) {
 	result := dao.GormDB.Where("budget_id = ?", budgetId).Find(&categories)
 	if result.Error != nil {
