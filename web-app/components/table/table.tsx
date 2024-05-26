@@ -1,5 +1,4 @@
-import React, {useState} from "react";
-import {list} from "postcss";
+import React, {useEffect, useState} from "react";
 
 export interface ColumnHeader {
     name: string,
@@ -19,50 +18,85 @@ export enum COLUMN_TYPE {
 }
 
 export default function Table(props: TableProps) {
-    const [activeRow, setActiveRow] = useState(2)
+
+    const DEFAULT_ACTIVE_ROW = -1;
+    const [activeRow, setActiveRow] = useState(DEFAULT_ACTIVE_ROW)
     const [activeRowValues, setActiveRowValues] = useState({})
 
-    const handleRowClick = (event: Event) => {
-        // setActiveRow(event.target)
-        // TODO: Look up how to set the active row upon a click event
+    useEffect(() => {
+
+    }, [activeRow])
+
+
+    const handleRowClick = (idx: number, rowValues: object) => {
+        // TODO: If row changes from one active row to another, save previously active row.
+
+        setActiveRow(idx);
+        setActiveRowValues(rowValues);
+    }
+
+    const handleSave = () => {
+        // TODO: Handle actually saving the data.
+        setActiveRow(DEFAULT_ACTIVE_ROW);
+    }
+
+    const handleRowChange = (header: string, value: any, type: COLUMN_TYPE) => {
+        // TODO: Update the state correctly. Currently, data in inputs is not updating as expected... Forms are whack.
+        let updatedActiveRow = activeRowValues;
+        if (header in updatedActiveRow) {
+            // @ts-ignore
+            updatedActiveRow[header] = value
+        }
+        setActiveRowValues(updatedActiveRow)
     }
 
     const createTableCols = (columnNames: ColumnHeader[]) => {
         const cols: React.JSX.Element[] = columnNames.map((colHeader, idx) => {
             return <th className="bg-gray-200 p-2 text-left border-b border-gray-300" key={idx}>
-                { colHeader.name }
+                {colHeader.name}
             </th>
         });
         return <thead>
-            <tr>
+        <tr>
             {cols}
-            </tr>
+        </tr>
         </thead>
+    }
+
+    const formatContent = (content: string, type: COLUMN_TYPE) => {
+        let formattedContent = content;
+        if (type == COLUMN_TYPE.currency) {
+            formattedContent = `\$${parseFloat(formattedContent).toFixed(2)}`
+        }
+
+        return <div>{formattedContent}</div>;
     }
 
     const createTableRow = (rowData: any, colNames: ColumnHeader[], trIdx: number): React.JSX.Element => {
         const rowContents = colNames.map((header, idx) => {
-            let content = rowData[header.name];
-            if (header.type == COLUMN_TYPE.currency) {
-                content = `\$${content.toFixed(2)}`
-            }
+            let content = formatContent(rowData[header.name], header.type);
+
             if (trIdx == activeRow) {
-                content = <input value={content}/>;
+                content = <input
+                // @ts-ignore
+                    value={activeRowValues[header.name]}
+                    onChange={(event) =>
+                        handleRowChange(header.name, event.target.value, header.type)}/>;
             }
-            return <td className="flex-1 p-2 border-b border-gray-300" key={idx}>
-                {/*onClick={handleRowClick}>*/}
-                { content }
+            return <td className="flex-1 p-2 border-b border-gray-300" key={idx}
+                       onClick={() => handleRowClick(trIdx, rowData)}>
+                {content}
             </td>
         });
 
         if (trIdx === activeRow) {
-            rowContents.push(<td><button>Save</button></td>)
+            rowContents.push(<td>
+                <button onClick={() => handleSave()}>Save</button>
+            </td>)
         }
 
-        console.log(trIdx);
-
         return <tr className="flex justify-between w-full" key={trIdx}>
-            { rowContents }
+            {rowContents}
         </tr>
     }
 
@@ -72,9 +106,9 @@ export default function Table(props: TableProps) {
 
     return (<div>
         <table className="w-full h-full border-collapse flex flex-col" style={{width: "100%"}}>
-            { createTableCols(props.columnNames) }
+            {createTableCols(props.columnNames)}
             <tbody className="flex flex-col h-full">
-            { tableRows }
+            {tableRows}
             </tbody>
         </table>
     </div>);
