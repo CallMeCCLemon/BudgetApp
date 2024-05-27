@@ -41,8 +41,8 @@ spec:
     spec:
       containers:
         - name: budget-app-backend
-          image: localhost:32000/budget-app:thomas-latest
-          imagePullPolicy: Always
+          image: docker.io/library/budget-app:caleb
+          imagePullPolicy: IfNotPresent
           ports:
             - containerPort: 8080
           env:

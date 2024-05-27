@@ -5,7 +5,7 @@ import {Budget, Category} from "@/app/types/BudgetTypes";
 import dummyBudgetData from '../../../test/fixtures/budget.json'
 import {useEffect, useState} from "react";
 import {usePathname, useRouter} from "next/navigation";
-import Table, {COLUMN_TYPE} from "@/components/table/table";
+import Table, {COLUMN_TYPE} from "@/components/table/transaction-table";
 
 export default function Page() {
     const pathName = usePathname();
@@ -38,7 +38,6 @@ export default function Page() {
         {name: "Allocated", type: COLUMN_TYPE.currency},
     ]
 
-
     const getBudgetContent = (budgetData: Budget | undefined) => {
         if (budgetData !== undefined) {
 
@@ -46,7 +45,7 @@ export default function Page() {
                 <h1>{budgetData.Name}</h1>
                 {newCategoryForm}
                 <div className="w-full h-full flex flex-col">
-                    <Table columnNames={columns} rowData={budgetData.Categories}/>
+                    <Table TableHeader={"Transactions"} columnNames={columns} rowData={budgetData.Categories} />
                 </div>
             </div>)
         } else {

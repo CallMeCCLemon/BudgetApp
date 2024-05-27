@@ -34,7 +34,7 @@ export default function Navbar() {
                     <Link href="#" className="dropbtn navbar-a">Account</Link>
                     <div className="dropdown-content right">
                         <Link href="./login">Login</Link>
-                        <Link href="#">Create Account</Link>
+                        <Link href="./create-account">Create Account</Link>
                     </div>
                 </li>
             </ul>
