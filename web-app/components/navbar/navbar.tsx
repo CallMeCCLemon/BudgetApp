@@ -19,6 +19,7 @@ export default function Navbar() {
                             let link = `/budget/${budget.ID}`;
                             return <Link key={budget.ID} href={link}>{budget.Name}</Link>
                         })}
+                        <Link href="/create-budget">Create Budget</Link>
                     </div>
                 </li>
                 <li className="dropdown navbar-li">
@@ -28,13 +29,14 @@ export default function Navbar() {
                             let link = `/account/${account.ID}`;
                             return <Link key={account.ID} href={link}>{account.Name}</Link>
                         })}
+                        <Link href="/link-new-account">Link New Account</Link>
                     </div>
                 </li>
                 <li className="dropdown navbar-li">
                     <Link href="#" className="dropbtn navbar-a">Account</Link>
                     <div className="dropdown-content right">
-                        <Link href="./login">Login</Link>
-                        <Link href="./create-account">Create Account</Link>
+                        <Link href="/login">Login</Link>
+                        <Link href="/create-account">Create Account</Link>
                     </div>
                 </li>
             </ul>

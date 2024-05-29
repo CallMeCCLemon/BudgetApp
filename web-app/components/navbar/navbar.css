@@ -52,6 +52,10 @@ li:last-child {
     text-align: left;
 }
 
+.dropdown-content a:last-child {
+    border-top: 1px solid lightgray;
+}
+
 .dropdown-content a:hover {background-color: #f1f1f1;}
 
 .dropdown:hover .dropdown-content {

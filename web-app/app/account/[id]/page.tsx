@@ -1,6 +1,6 @@
 'use client'
 
-import Table, {COLUMN_TYPE} from "@/components/table/transaction-table";
+import TransactionTable , {COLUMN_TYPE} from "@/components/table/transaction-table";
 import dummyAccountData from "../../../test/fixtures/account.json";
 
 export default function Page() {
@@ -15,6 +15,6 @@ export default function Page() {
 
     return <main>
         <h1>{dummyAccountData.Name}</h1>
-        <Table columnNames={columns} rowData={dummyAccountData.Transactions}/>
+        <TransactionTable columnNames={columns} rowData={dummyAccountData.Transactions} TableHeader="Transactions" />
     </main>
 }

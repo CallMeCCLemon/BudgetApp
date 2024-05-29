@@ -1,6 +1,4 @@
 import Link from "next/link";
-import {ArrowRightIcon} from "@heroicons/react/24/outline";
-
 
 export default function Page() {
     return (
@@ -13,7 +11,6 @@ export default function Page() {
                         <tr><Link href={"/account"}>Accounts</Link></tr>
                     </tbody>
                 </table>
-
             </div>
         </main>
     );

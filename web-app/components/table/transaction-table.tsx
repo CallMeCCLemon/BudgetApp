@@ -3,8 +3,6 @@ import React, {useEffect, useState} from "react";
 //
 import './transaction-table.css'
 
-import {Person, makeData} from "./data";
-
 //
 import {
     Column,
@@ -123,7 +121,7 @@ export default function TransactionTable(props: TableProps) {
     )
 
     const [data, setData] = React.useState(() => props.rowData)
-    const refreshData = () => setData(() => makeData(1000))
+    const refreshData = () => setData(() => props.rowData)
 
     const [autoResetPageIndex, skipAutoResetPageIndex] = useSkipper()
 
