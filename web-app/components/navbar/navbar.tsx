@@ -29,7 +29,7 @@ export default function Navbar() {
                             let link = `/account/${account.ID}`;
                             return <Link key={account.ID} href={link}>{account.Name}</Link>
                         })}
-                        <Link href="/link-new-account">Link New Account</Link>
+                        <Link href="/account/link-new-account">Link New Account</Link>
                     </div>
                 </li>
                 <li className="dropdown navbar-li">

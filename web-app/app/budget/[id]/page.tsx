@@ -1,24 +1,28 @@
 'use client'
 
-
-import {Budget, Category} from "@/app/types/BudgetTypes";
+import {Budget} from "@/app/types/BudgetTypes";
 import dummyBudgetData from '../../../test/fixtures/budget.json'
-import {useEffect, useState} from "react";
-import {usePathname, useRouter} from "next/navigation";
+import {useEffect, useState, useContext} from "react";
+import {useParams} from "next/navigation";
 import Table, {COLUMN_TYPE} from "@/components/table/transaction-table";
+import {GlobalContext} from "@/context/global-context";
 
 export default function Page() {
-    const pathName = usePathname();
+    const params = useParams<{id: string}>();
     const [newCategory, setNewCategory] = useState<string>("")
     const [budgetData, setBudgetData] = useState<Budget | undefined>()
+    const {budget, setBudget} = useContext(GlobalContext);
 
     useEffect(() => {
         // TODO: Load Budget Data here!
-        const splitPath = pathName.split('/')
-        const budgetId = splitPath[splitPath.length - 1]
-        console.log(`Budget ID: ${budgetId}`)
-        setBudgetData(dummyBudgetData);
-    }, [pathName])
+        const budgetId = params.id;
+        if (!budget?.id || budgetId != budget.id) {
+            // Call backend
+            console.log("Call backend");
+            setBudgetData(dummyBudgetData);
+            setBudget(budgetData);
+        }
+    }, [budget, budgetData, params, setBudget])
 
     const createNewCategory = () => {
         console.log(`Creating new Category! ${newCategory}`)
@@ -40,7 +44,6 @@ export default function Page() {
 
     const getBudgetContent = (budgetData: Budget | undefined) => {
         if (budgetData !== undefined) {
-
             return (<div>
                 <h1>{budgetData.Name}</h1>
                 {newCategoryForm}
