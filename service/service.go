@@ -2,6 +2,7 @@ package service
 
 import (
 	"BudgetingApp/persistance"
+	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	"log"
 	"net/http"
@@ -20,6 +21,9 @@ func Start() error {
 
 func setupServer(dao *persistance.StorageDao) *gin.Engine {
 	g := gin.Default()
+	config := cors.Default()
+	g.Use(config)
+
 	g.GET("/", func(c *gin.Context) {
 		c.JSON(http.StatusOK, gin.H{
 			"response": "Hello World!",
