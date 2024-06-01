@@ -1,13 +1,13 @@
 "use client";
 import React, {useState} from "react";
 
-class Budget {
-    "Name": string;
-    "ID": number;
-    "Categories": Category[];
+interface Budget {
+    Name: string;
+    ID: number;
+    Categories: Category[];
 }
 
-class Category{
+interface Category {
     "Title": string;
     "BudgetID": number;
     "ID": number;
@@ -25,9 +25,15 @@ interface IGlobalContextProps {
     setBudget: (budget: Budget) => void;
 }
 
+const DEFAULT_BUDGET = {
+    Name: "",
+    ID: -1,
+    Categories: [],
+} as Budget
+
 export const GlobalContext = React.createContext<IGlobalContextProps>({
     user: {},
-    budget: new Budget(),
+    budget: DEFAULT_BUDGET,
     loading: true,
     setUser: () => {},
     setLoading: () => {},
@@ -37,7 +43,7 @@ export const GlobalContext = React.createContext<IGlobalContextProps>({
 export const GlobalContextProvider = (props: any) => {
     const [currentUser, setCurrentUser] = useState({});
     const [isLoading, setIsLoading] = useState(true);
-    const [currentBudget, setCurrentBudget] = useState({});
+    const [currentBudget, setCurrentBudget] = useState(DEFAULT_BUDGET);
 
     return (
         <GlobalContext.Provider
@@ -47,7 +53,7 @@ export const GlobalContextProvider = (props: any) => {
                 loading: isLoading,
                 setUser: setCurrentUser,
                 setLoading: setIsLoading,
-                setBudget: setCurrentBudget
+                setBudget: setCurrentBudget,
             }}
         >
             {props.children}
