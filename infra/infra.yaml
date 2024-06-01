@@ -38,13 +38,15 @@ spec:
     metadata:
       labels:
         app: budget-app-backend
+        app.kubernetes.io/name: budget-app-backend
     spec:
       containers:
         - name: budget-app-backend
-          image: docker.io/library/budget-app:caleb
+          image: 10.0.0.108:32000/budget-app:thomas-latest
           imagePullPolicy: IfNotPresent
           ports:
             - containerPort: 8080
+              name: backend-http
           env:
             - name: USERNAME
               valueFrom:
@@ -65,3 +67,17 @@ spec:
             limits:
               cpu: "200m"
               memory: "256Mi"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: budget-app-backend-service
+  namespace: budget-app
+spec:
+  selector:
+    app.kubernetes.io/name: budget-app-backend
+  ports:
+    - name: backend-http-port
+      protocol: TCP
+      port: 8080
+      targetPort: backend-http
