@@ -10,7 +10,12 @@ import (
 )
 
 func Test_AccountCRUDOperations(t *testing.T) {
-	dao, err := NewStorageDao(os.Getenv("USERNAME"), os.Getenv("PASSWORD"), os.Getenv("HOST"), "budgetApp")
+	dao, err := NewStorageDao(
+		os.Getenv("USERNAME"),
+		os.Getenv("PASSWORD"),
+		os.Getenv("HOST"),
+		os.Getenv("PORT"),
+		"budgetapp")
 	if err != nil {
 		log.Fatal("Failed to connect to the MySQL DB!", err)
 	}
@@ -59,7 +64,12 @@ func Test_AccountCRUDOperations(t *testing.T) {
 }
 
 func Test_BudgetCRUDOperations(t *testing.T) {
-	dao, err := NewStorageDao("root", os.Getenv("PASSWORD"), "127.0.0.1", "budgetApp")
+	dao, err := NewStorageDao(
+		os.Getenv("USERNAME"),
+		os.Getenv("PASSWORD"),
+		os.Getenv("HOST"),
+		os.Getenv("PORT"),
+		"budgetapp")
 	if err != nil {
 		log.Fatal("Failed to connect to the MySQL DB!", err)
 	}
@@ -107,7 +117,12 @@ func Test_BudgetCRUDOperations(t *testing.T) {
 }
 
 func Test_CategoryCRUDOperations(t *testing.T) {
-	dao, err := NewStorageDao("root", os.Getenv("PASSWORD"), "127.0.0.1", "budgetApp")
+	dao, err := NewStorageDao(
+		os.Getenv("USERNAME"),
+		os.Getenv("PASSWORD"),
+		os.Getenv("HOST"),
+		os.Getenv("PORT"),
+		"budgetapp")
 	if err != nil {
 		log.Fatal("Failed to connect to the MySQL DB!", err)
 	}
@@ -168,7 +183,12 @@ func Test_CategoryCRUDOperations(t *testing.T) {
 }
 
 func Test_AllocationCRUDOperations(t *testing.T) {
-	dao, err := NewStorageDao("root", os.Getenv("PASSWORD"), "127.0.0.1", "budgetApp")
+	dao, err := NewStorageDao(
+		os.Getenv("USERNAME"),
+		os.Getenv("PASSWORD"),
+		os.Getenv("HOST"),
+		os.Getenv("PORT"),
+		"budgetapp")
 	if err != nil {
 		log.Fatal("Failed to connect to the MySQL DB!", err)
 	}
@@ -229,7 +249,12 @@ func Test_AllocationCRUDOperations(t *testing.T) {
 }
 
 func Test_TransactionCRUDOperations(t *testing.T) {
-	dao, err := NewStorageDao("root", os.Getenv("PASSWORD"), "127.0.0.1", "budgetApp")
+	dao, err := NewStorageDao(
+		os.Getenv("USERNAME"),
+		os.Getenv("PASSWORD"),
+		os.Getenv("HOST"),
+		os.Getenv("PORT"),
+		"budgetapp")
 	if err != nil {
 		log.Fatal("Failed to connect to the MySQL DB!", err)
 	}

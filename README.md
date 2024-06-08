@@ -54,7 +54,7 @@
 
 This will start the port-forwarding on your local machine to get started with mySql.
 ```
-kubectl port-forward service/budget-app-mysql-database -n budget-app 3306
+kubectl port-forward service/budget-app-psql-rw -n budget-app 5432
 ```
 
 ### Create local kind server
@@ -63,9 +63,11 @@ kubectl port-forward service/budget-app-mysql-database -n budget-app 3306
 kind create cluster --name budget-app
 kind get kubeconfig --name budget-app > .kube/config
 
-helm repo add mysql-operator https://mysql.github.io/mysql-operator/
-helm repo update
-helm install my-mysql-operator mysql-operator/mysql-operator --namespace mysql-operator --create-namespace
-
+helm repo add cnpg https://cloudnative-pg.github.io/charts
+helm upgrade --install cnpg \
+  --namespace cnpg-system \
+  --create-namespace \
+  cnpg/cloudnative-pg
+  
 kubectl create secret generic mysql-passwords -n budget-app --from-literal=rootUser=root --from-literal=rootHost=% --from-literal=rootPassword="dummy-password123!"
 ```

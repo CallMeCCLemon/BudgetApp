@@ -14,7 +14,12 @@ import (
 )
 
 func Test_budget_CRUD_operations_test(t *testing.T) {
-	dao, err := persistance.NewStorageDao(os.Getenv("USERNAME"), os.Getenv("PASSWORD"), os.Getenv("HOST"), "budgetApp")
+	dao, err := persistance.NewStorageDao(
+		os.Getenv("USERNAME"),
+		os.Getenv("PASSWORD"),
+		os.Getenv("HOST"),
+		os.Getenv("PORT"),
+		"budgetapp")
 	if err != nil {
 		return
 	}
@@ -93,7 +98,12 @@ func Test_budget_CRUD_operations_test(t *testing.T) {
 }
 
 func Test_account_CRUD_operations_test(t *testing.T) {
-	dao, err := persistance.NewStorageDao(os.Getenv("USERNAME"), os.Getenv("PASSWORD"), os.Getenv("HOST"), "budgetApp")
+	dao, err := persistance.NewStorageDao(
+		os.Getenv("USERNAME"),
+		os.Getenv("PASSWORD"),
+		os.Getenv("HOST"),
+		os.Getenv("PORT"),
+		"budgetapp")
 	if err != nil {
 		return
 	}
@@ -166,9 +176,14 @@ func Test_account_CRUD_operations_test(t *testing.T) {
 }
 
 func Test_category_CRUD_operations_test(t *testing.T) {
-	dao, err := persistance.NewStorageDao(os.Getenv("USERNAME"), os.Getenv("PASSWORD"), os.Getenv("HOST"), "budgetApp")
+	dao, err := persistance.NewStorageDao(
+		os.Getenv("USERNAME"),
+		os.Getenv("PASSWORD"),
+		os.Getenv("HOST"),
+		os.Getenv("PORT"),
+		"budgetapp")
 	if err != nil {
-		return
+		t.Fatalf("Failed to connect! %s", err)
 	}
 	ts := httptest.NewServer(setupServer(dao))
 	defer ts.Close()
@@ -246,7 +261,12 @@ func Test_category_CRUD_operations_test(t *testing.T) {
 }
 
 func Test_transaction_CRUD_operations_test(t *testing.T) {
-	dao, err := persistance.NewStorageDao(os.Getenv("USERNAME"), os.Getenv("PASSWORD"), os.Getenv("HOST"), "budgetApp")
+	dao, err := persistance.NewStorageDao(
+		os.Getenv("USERNAME"),
+		os.Getenv("PASSWORD"),
+		os.Getenv("HOST"),
+		os.Getenv("PORT"),
+		"budgetapp")
 	if err != nil {
 		return
 	}
@@ -335,7 +355,12 @@ func Test_transaction_CRUD_operations_test(t *testing.T) {
 }
 
 func Test_allocation_CRUD_operations_test(t *testing.T) {
-	dao, err := persistance.NewStorageDao(os.Getenv("USERNAME"), os.Getenv("PASSWORD"), os.Getenv("HOST"), "budgetApp")
+	dao, err := persistance.NewStorageDao(
+		os.Getenv("USERNAME"),
+		os.Getenv("PASSWORD"),
+		os.Getenv("HOST"),
+		os.Getenv("PORT"),
+		"budgetapp")
 	if err != nil {
 		return
 	}
@@ -417,7 +442,12 @@ func Test_allocation_CRUD_operations_test(t *testing.T) {
 }
 
 func Test_get_budget_with_categories(t *testing.T) {
-	dao, err := persistance.NewStorageDao(os.Getenv("USERNAME"), os.Getenv("PASSWORD"), os.Getenv("HOST"), "budgetApp")
+	dao, err := persistance.NewStorageDao(
+		os.Getenv("USERNAME"),
+		os.Getenv("PASSWORD"),
+		os.Getenv("HOST"),
+		os.Getenv("PORT"),
+		"budgetapp")
 	if err != nil {
 		return
 	}

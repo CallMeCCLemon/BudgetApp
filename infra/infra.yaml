@@ -81,3 +81,30 @@ spec:
       protocol: TCP
       port: 8080
       targetPort: backend-http
+---
+apiVersion: postgresql.cnpg.io/v1
+kind: Cluster
+metadata:
+  name: budget-app-psql
+  namespace: budget-app
+spec:
+  instances: 3
+  storage:
+    size: 10Gi
+  resources:
+    requests:
+      cpu: "100m"
+      memory: "128Mi"
+    limits:
+      cpu: "200m"
+      memory: "256Mi"
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: thomas-login
+  namespace: budget-app
+type: Opaque
+data:
+  username: dGhvbWFzCg==  # base64 encoded value of 'username'
+  password: bXFuM3dlcSFqemFfQVFUN2JmdAo=  # base64 encoded value of 'password'

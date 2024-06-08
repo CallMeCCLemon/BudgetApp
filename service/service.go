@@ -10,7 +10,12 @@ import (
 )
 
 func Start() error {
-	dao, err := persistance.NewStorageDao(os.Getenv("USERNAME"), os.Getenv("PASSWORD"), os.Getenv("HOST"), "budgetApp")
+	dao, err := persistance.NewStorageDao(
+		os.Getenv("USERNAME"),
+		os.Getenv("PASSWORD"),
+		os.Getenv("HOST"),
+		os.Getenv("PORT"),
+		"budgetApp")
 	if err != nil {
 		return err
 	}
