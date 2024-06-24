@@ -2,6 +2,7 @@ package service
 
 import (
 	"BudgetingApp/persistance"
+	"fmt"
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	"log"
@@ -10,15 +11,24 @@ import (
 )
 
 func Start() error {
+	log.Println("Starting service DB connection")
+	log.Println(fmt.Sprintf(
+		"Env vars: Username - %s, password - %s, host - %s port - %s ",
+		os.Getenv("USERNAME"),
+		os.Getenv("PASSWORD"),
+		os.Getenv("HOST"),
+		os.Getenv("PSQL_PORT")))
+
 	dao, err := persistance.NewStorageDao(
 		os.Getenv("USERNAME"),
 		os.Getenv("PASSWORD"),
 		os.Getenv("HOST"),
-		os.Getenv("PORT"),
+		os.Getenv("PSQL_PORT"),
 		"budgetApp")
 	if err != nil {
 		return err
 	}
+	log.Println("Starting service HTTP server")
 	g := setupServer(dao)
 	err = g.Run()
 	return err

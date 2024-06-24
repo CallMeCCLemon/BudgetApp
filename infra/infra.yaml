@@ -51,15 +51,17 @@ spec:
             - name: USERNAME
               valueFrom:
                 secretKeyRef:
-                  name: mysql-passwords
-                  key: rootUser
+                  name: psql-password
+                  key: username
             - name: PASSWORD
               valueFrom:
                 secretKeyRef:
-                  name: mysql-passwords
-                  key: rootPassword
+                  name: psql-password
+                  key: password
             - name: HOST
-              value: budget-app-mysql-database
+              value: budget-app-psql-rw
+            - name: PSQL_PORT
+              value: "5432"
           resources:
             requests:
               cpu: "100m"
@@ -98,13 +100,3 @@ spec:
     limits:
       cpu: "200m"
       memory: "256Mi"
----
-apiVersion: v1
-kind: Secret
-metadata:
-  name: thomas-login
-  namespace: budget-app
-type: Opaque
-data:
-  username: dGhvbWFzCg==  # base64 encoded value of 'username'
-  password: bXFuM3dlcSFqemFfQVFUN2JmdAo=  # base64 encoded value of 'password'

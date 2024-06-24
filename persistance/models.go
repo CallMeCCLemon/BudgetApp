@@ -49,7 +49,6 @@ type StorageDao struct {
 func NewStorageDao(username string, password string, address string, port string, dbname string) (*StorageDao, error) {
 	cfg := postgres.Config{
 		DSN: fmt.Sprintf("host=%s user=%s password=%s dbname=%s port=%s sslmode=disable", address, username, password, dbname, port),
-		//PreferSimpleProtocol: true,
 	}
 
 	psql := postgres.New(cfg)

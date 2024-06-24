@@ -237,7 +237,7 @@ func Test_AllocationCRUDOperations(t *testing.T) {
 		assert.NotZero(t, result.RowsAffected)
 	})
 
-	t.Run("Read a new Allocation", func(t *testing.T) {
+	t.Run("Read a deleted Allocation", func(t *testing.T) {
 		readAllocation := Allocation{
 			Model: gorm.Model{ID: allocation.ID},
 		}

@@ -71,3 +71,19 @@ helm upgrade --install cnpg \
   
 kubectl create secret generic mysql-passwords -n budget-app --from-literal=rootUser=root --from-literal=rootHost=% --from-literal=rootPassword="dummy-password123!"
 ```
+
+### Run Docker container locally
+```bash
+
+# use docker image ls to get this value
+IMAGE_ID=
+PORT=5432 # default for psql
+PSWD='somepasswd' # k8s secret.
+
+docker run --rm -p 8080:8080 -it -p 5432:5432 \
+  -e HOST='127.0.0.1' \
+  -e PORT=5432 \
+  -e USERNAME='budgetapp' \
+  -e PASSWORD=$PSWD \
+  $IMAGE_ID
+```
