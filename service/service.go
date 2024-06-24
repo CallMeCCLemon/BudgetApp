@@ -35,8 +35,8 @@ func Start() error {
 
 func setupServer(dao *persistance.StorageDao) *gin.Engine {
 	g := gin.Default()
-	config := cors.Default()
-	g.Use(config)
+	config := cors.DefaultConfig()
+	g.Use(cors.New(config))
 
 	g.GET("/", func(c *gin.Context) {
 		c.JSON(http.StatusOK, gin.H{
