@@ -28,7 +28,6 @@ func Start() error {
 	if err != nil {
 		return err
 	}
-	log.Println("Starting service HTTP server")
 	g := setupServer(dao)
 	err = g.Run()
 	return err

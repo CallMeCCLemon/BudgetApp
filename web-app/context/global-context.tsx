@@ -1,28 +1,16 @@
 "use client";
 import React, {useState} from "react";
+import {Category, Budget} from "@/app/types/BudgetTypes";
 
-interface Budget {
-    Name: string;
-    ID: number;
-    Categories: Category[];
-}
-
-interface Category {
-    "Title": string;
-    "BudgetID": number;
-    "ID": number;
-    "Total": number;
-    "Spent": number;
-    "Allocated": number;
-}
-
-interface IGlobalContextProps {
+export interface IGlobalContextProps {
     user: any;
     budget: Budget;
+    budgets: Budget[];
     loading: boolean;
     setUser: (user: any) => void;
     setLoading: (loading: boolean) => void;
     setBudget: (budget: Budget) => void;
+    setBudgets: (budgets: Budget[]) => void;
 }
 
 const DEFAULT_BUDGET = {
@@ -34,26 +22,31 @@ const DEFAULT_BUDGET = {
 export const GlobalContext = React.createContext<IGlobalContextProps>({
     user: {},
     budget: DEFAULT_BUDGET,
+    budgets: [DEFAULT_BUDGET],
     loading: true,
     setUser: () => {},
     setLoading: () => {},
     setBudget: () => {},
+    setBudgets: () => {},
 });
 
 export const GlobalContextProvider = (props: any) => {
     const [currentUser, setCurrentUser] = useState({});
     const [isLoading, setIsLoading] = useState(true);
     const [currentBudget, setCurrentBudget] = useState(DEFAULT_BUDGET);
+    const [budgets, setBudgets] = useState([DEFAULT_BUDGET])
 
     return (
         <GlobalContext.Provider
             value={{
                 user: currentUser,
                 budget: currentBudget,
+                budgets: budgets,
                 loading: isLoading,
                 setUser: setCurrentUser,
                 setLoading: setIsLoading,
                 setBudget: setCurrentBudget,
+                setBudgets: setBudgets,
             }}
         >
             {props.children}

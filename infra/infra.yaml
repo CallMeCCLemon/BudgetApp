@@ -83,20 +83,3 @@ spec:
       protocol: TCP
       port: 8080
       targetPort: backend-http
----
-apiVersion: postgresql.cnpg.io/v1
-kind: Cluster
-metadata:
-  name: budget-app-psql
-  namespace: budget-app
-spec:
-  instances: 3
-  storage:
-    size: 10Gi
-  resources:
-    requests:
-      cpu: "100m"
-      memory: "128Mi"
-    limits:
-      cpu: "200m"
-      memory: "256Mi"

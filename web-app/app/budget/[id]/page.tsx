@@ -4,8 +4,9 @@ import {Budget} from "@/app/types/BudgetTypes";
 import dummyBudgetData from '../../../test/fixtures/budget.json'
 import {useEffect, useState, useContext} from "react";
 import {useParams} from "next/navigation";
-import Table, {COLUMN_TYPE} from "@/components/table/transaction-table";
+import Table from "@/components/table/transaction-table";
 import {GlobalContext} from "@/context/global-context";
+import {COLUMN_TYPE} from "@/components/table/table";
 
 export default function Page() {
     const params = useParams<{id: string}>();
@@ -16,11 +17,11 @@ export default function Page() {
     useEffect(() => {
         // TODO: Load Budget Data here!
         const budgetId = params.id;
-        if (!budget?.id || budgetId != budget.id) {
+        if (!budget?.ID || budgetId != budget.ID.toString()) {
             // Call backend
             console.log("Call backend");
             setBudgetData(dummyBudgetData);
-            setBudget(budgetData);
+            setBudget(budgetData!);
         }
     }, [budget, budgetData, params, setBudget])
 

@@ -1,7 +1,8 @@
 'use client'
 
-import TransactionTable , {COLUMN_TYPE} from "@/components/table/transaction-table";
+import TransactionTable from "@/components/table/transaction-table";
 import dummyAccountData from "../../../test/fixtures/account.json";
+import {COLUMN_TYPE} from "@/components/table/table";
 
 export default function Page() {
 
