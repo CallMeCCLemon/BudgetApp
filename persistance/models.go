@@ -43,54 +43,28 @@ type Account struct {
 }
 
 type StorageDao struct {
-	DB     *sql.DB
 	GormDB *gorm.DB
 }
 
-func NewStorageDao(username string, password string, address string, dbname string) (*StorageDao, error) {
-	loc, err := time.LoadLocation("UTC")
-	cfg := mysql.Config{
-		User:   username,
-		Passwd: password,
-		Net:    "tcp",
-		Addr:   address,
-		DBName: dbname,
-		//TLSConfig: "skip-verify",
-		TLS: &tls.Config{
-			MinVersion: tls.VersionTLS12,
-			MaxVersion: tls.VersionTLS12,
-		},
-		ParseTime: true,
-		Loc:       loc,
+func NewStorageDao(username string, password string, address string, port string, dbname string) (*StorageDao, error) {
+	cfg := postgres.Config{
+		DSN: fmt.Sprintf("host=%s user=%s password=%s dbname=%s port=%s sslmode=disable", address, username, password, dbname, port),
+		//PreferSimpleProtocol: true,
 	}
 
-	db, err := sql.Open("mysql", cfg.FormatDSN())
-	if err != nil {
-		return nil, err
-	}
-	gormDb, err := createGormInstance(db)
-	//// TODO: Figure out if this is how this is intended to be done.
-	//defer func(db *sql.DB) {
-	//	err := db.Close()
-	//	if err != nil {
-	//
-	//	}
-	//}(db)
-	return &StorageDao{DB: db, GormDB: gormDb}, nil
-}
-
-func createGormInstance(db *sql.DB) (*gorm.DB, error) {
-	gormDB, err := gorm.Open(msql.New(msql.Config{
-		Conn: db,
-	}), &gorm.Config{
+	psql := postgres.New(cfg)
+	gormCfg := gorm.Config{
 		NowFunc: func() time.Time {
 			return time.Now().UTC()
 		},
-	})
+	}
+
+	gormDB, err := gorm.Open(psql, &gormCfg)
 	if err != nil {
 		return nil, err
 	}
-	return gormDB, nil
+
+	return &StorageDao{GormDB: gormDB}, nil
 }
 
 func (dao *StorageDao) GetAllBudgets() (budgets []Budget, err error) {
