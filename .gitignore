@@ -5,3 +5,4 @@ web-app/.next
 web-app/node_modules
 .next
 node_modules
+package-lock.json
